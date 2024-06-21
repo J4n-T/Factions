@@ -1,0 +1,7 @@
+databaseType: "postgresql"
+hostname: "localhost"
+port: 5432
+database: "factions"
+username: "postgres"
+password: ""
+

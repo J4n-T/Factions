@@ -8,12 +8,9 @@ import dev.tieseler.factions.listeners.ChunkListener
 import dev.tieseler.factions.listeners.PigListener
 import dev.tieseler.factions.listeners.PlayerListener
 import org.bukkit.Bukkit
-import org.bukkit.Material
-import org.bukkit.NamespacedKey
-import org.bukkit.block.Block
 import org.bukkit.entity.Pig
-import org.bukkit.persistence.PersistentDataType
 import org.bukkit.plugin.java.JavaPlugin
+import org.hibernate.Session
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
@@ -21,7 +18,7 @@ class Factions : JavaPlugin() {
 
     var databaseConnector: DatabaseConnector? = null
     val pigs = ConcurrentHashMap<UUID, Pig>()
-    var readSession = databaseConnector?.sessionFactory?.openSession()
+    var readSession: Session? = null
 
     override fun onEnable() {
         instance = this
@@ -45,6 +42,8 @@ class Factions : JavaPlugin() {
         getCommand("peposit")?.setExecutor(PepoSitCommand())
         getCommand("faction")?.setExecutor(FactionCommand())
         getCommand("invite")?.setExecutor(InviteCommand())
+
+        readSession = databaseConnector!!.sessionFactory!!.openSession()
 
         Bukkit.getGlobalRegionScheduler().runAtFixedRate(this, {
             pigs.forEach(100) { id, pig ->

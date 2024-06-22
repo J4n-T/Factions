@@ -1,14 +1,9 @@
 package dev.tieseler.factions
 
-import com.zaxxer.hikari.HikariConfig
-import com.zaxxer.hikari.HikariDataSource
 import dev.tieseler.factions.data.*
 import org.hibernate.SessionFactory
-import org.hibernate.Transaction
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder
 import org.hibernate.cfg.Configuration
-import java.sql.Connection
-import java.sql.ResultSet
 import java.util.*
 
 import org.hibernate.cfg.Environment.*
@@ -51,33 +46,5 @@ class DatabaseConnector(
         val serviceRegistry: ServiceRegistry = StandardServiceRegistryBuilder().applySettings(configuration.properties).build()
         sessionFactory = configuration.buildSessionFactory(serviceRegistry)
     }
-
-    fun saveFactionPlayer(player: FactionPlayer): FactionPlayer {
-        return save(player) as FactionPlayer
-    }
-
-    fun saveFaction(faction: Faction): Faction {
-        return save(faction) as Faction
-    }
-
-    private fun save(entity: Any): Any {
-        val session = sessionFactory!!.openSession()
-        session.beginTransaction()
-        session.persist(entity)
-        session.transaction.commit()
-        session.close()
-        return entity
-    }
-
-    private fun get(entity: Any, id: UUID): Any {
-        val session = sessionFactory!!.openSession()
-        val transaction: Transaction = session.beginTransaction()
-        val result = session.get(entity::class.java, id)
-        transaction.commit()
-        session.close()
-        return result
-    }
-
-
 
 }

@@ -15,6 +15,8 @@ import java.util.*
 
 class FactionCommand : CommandExecutor, TabCompleter {
 
+    val messages = Factions.instance.messages
+
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>?): Boolean {
         val player = sender as? Player ?: return false
         if (args!!.isEmpty()) return false
@@ -24,7 +26,7 @@ class FactionCommand : CommandExecutor, TabCompleter {
 
         val factionPlayer = session.get(FactionPlayer::class.java, player.uniqueId)
         if (factionPlayer == null) {
-            player.sendMessage(Component.text("§4[Faction] §cDein Profil konnte nicht abgerufen werden :c"))
+            player.sendMessage(messages.failedToFetchPlayerData())
             session.close()
             return true
         }
@@ -32,25 +34,25 @@ class FactionCommand : CommandExecutor, TabCompleter {
         when (args[0]) {
             "create" -> {
                 if (factionPlayer.faction != null) {
-                    player.sendMessage(Component.text("§4[Faction] Du bist bereits in einer Faction :/"))
+                    player.sendMessage(messages.alreadyInFaction())
                     session.close()
                     return true
                 }
 
                 if (args.size < 2) {
-                    player.sendMessage(Component.text("§4[Faction] §cWir sind hier nicht bei \"No Game No Life\"! Bitte gib deiner Faction einen Namen (ohne Leerzeichen)!"))
+                    player.sendMessage(messages.missingFactionName())
                     session.close()
                     return true
                 }
 
                 if (args.size < 3 || (args[2].equals("neutral", true) && args[2].equals("aggressiv", true))) {
-                    player.sendMessage(Component.text("§4[Faction] §cBitte entscheide dich dafür, ob deine Faction neutral oder aggressiv sein soll!"))
+                    player.sendMessage(messages.selectFactionMode())
                     session.close()
                     return true
                 }
 
                 if (args.size < 4) {
-                    player.sendMessage(Component.text("§4[Faction] §cBitte gib eine Beschreibung für deine Faction ein!"))
+                    player.sendMessage(messages.missingFactionDescription())
                     session.close()
                     return true
                 }
@@ -59,7 +61,7 @@ class FactionCommand : CommandExecutor, TabCompleter {
                 query.setParameter("name", args[0])
                 val result = query.setMaxResults(1).uniqueResult()
                 if (result != null) {
-                    player.sendMessage(Component.text("§4[Faction] §cDie Faction §a${args[0]} §cexistiert bereits :/"))
+                    player.sendMessage(messages.factionAlreadyExists(result.name!!))
                     session.close()
                     return true
                 }
@@ -89,24 +91,24 @@ class FactionCommand : CommandExecutor, TabCompleter {
                     """.trimIndent())))
                 Bukkit.getServer().broadcast(announcement)
 
-                player.sendMessage(Component.text("§4[Faction] §aDeine Faction wurde gegründet!"))
+                player.sendMessage(messages.factionCreated())
             }
             "disband" -> {
                 if (factionPlayer.faction == null) {
-                    player.sendMessage(Component.text("§cDu bist in keiner Faction!"))
+                    player.sendMessage(messages.playerNotInFaction())
                     session.close()
                     return true
                 }
 
                 val faction = factionPlayer.faction
                 if (faction == null) {
-                    player.sendMessage(Component.text("§cDie Daten deiner Faction konnten nicht abgerufen werden :c"))
+                    player.sendMessage(messages.failedToFetchFactionData())
                     session.close()
                     return true
                 }
 
                 if (faction.leader != factionPlayer) {
-                    player.sendMessage(Component.text("§cDu bist nicht der Anführer der Faction!"))
+                    player.sendMessage(messages.playerNotFactionLeader())
                     session.close()
                     return true
                 }
@@ -121,7 +123,7 @@ class FactionCommand : CommandExecutor, TabCompleter {
                 transaction.commit()
                 session.close()
 
-                player.sendMessage(Component.text("§4[Faction] §cDeine Faction wurde aufgelöst!"))
+                player.sendMessage(messages.factionDisbanded())
                 Bukkit.getServer().broadcast(Component.text("§4[Announcement] §cDie Faction §4${faction.name} §cwurde aufgelöst!"))
                 return true
             }
@@ -133,7 +135,7 @@ class FactionCommand : CommandExecutor, TabCompleter {
                 }
 
                 if (factionPlayer.faction == null) {
-                    player.sendMessage(Component.text("§4[Faction] §cDu bist in keiner Faction!"))
+                    player.sendMessage(messages.playerNotInFaction())
                     session.close()
                     return true
                 }
@@ -147,26 +149,26 @@ class FactionCommand : CommandExecutor, TabCompleter {
 
                 val targetFactionPlayer = session.get(FactionPlayer::class.java, target.uniqueId)
                 if (targetFactionPlayer == null) {
-                    player.sendMessage(Component.text("§4[Faction] §cDie Daten des Spielers konnten nicht abgerufen werden :c"))
+                    player.sendMessage(messages.failedToFetchPlayerData(target.displayName()))
                     session.close()
                     return true
                 }
 
                 val faction = factionPlayer.faction
                 if (faction == null) {
-                    player.sendMessage(Component.text("§4[Faction] §cDie Daten deiner Faction konnten nicht abgerufen werden :c"))
+                    player.sendMessage(messages.failedToFetchFactionData())
                     session.close()
                     return true
                 }
 
                 if (faction.leader != factionPlayer) {
-                    player.sendMessage(Component.text("§4[Faction] §cDu bist nicht der Anführer der Faction!"))
+                    player.sendMessage(messages.playerNotFactionLeader())
                     session.close()
                     return true
                 }
 
                 if (targetFactionPlayer.faction != faction) {
-                    player.sendMessage(Component.text("§4[Faction] §cDer Spieler §a${target.name} §cist nicht in deiner Faction!"))
+                    player.sendMessage(messages.targetNotSameFaction(target.displayName()))
                     session.close()
                     return true
                 }
@@ -182,6 +184,38 @@ class FactionCommand : CommandExecutor, TabCompleter {
                 target.sendMessage(Component.text("§4[Faction] §cDu wurdest aus der Faction §a${faction.name} §cgekickt!"))
                 Bukkit.getServer().broadcast(Component.text("§4[Announcement] §cDer Spieler §4${target.name} §cwurde aus der Faction §4${faction.name} §cgekickt!"))
                 return true
+            }
+            "edit" -> {
+                if (args.size < 2) {
+                    player.sendMessage(Component.text("§4[Faction] §cDu musst einen Unterbefehl angeben!"))
+                    return true
+                }
+
+                val factionPlayer = session.get(FactionPlayer::class.java, player.uniqueId)
+                if (factionPlayer.faction == null) {
+                    player.sendMessage(messages.playerNotInFaction())
+                    return true
+                }
+
+                if (factionPlayer!!.faction!!.leader != factionPlayer) {
+                    player.sendMessage(messages.playerNotFactionLeader())
+                    return true
+                }
+
+                when (args[1]) {
+                    "name" -> {
+                        if (args.size < 3) {
+                            player.sendMessage(messages.missingFactionName())
+                            return true
+                        }
+
+                        val name = args[2]
+                        factionPlayer.faction!!.name = name
+                        session.persist(factionPlayer.faction)
+                        transaction.commit()
+                        session.close()
+                    }
+                }
             }
         }
         session.close()

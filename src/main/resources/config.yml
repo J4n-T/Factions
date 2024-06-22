@@ -5,3 +5,4 @@ database: "factions"
 username: "postgres"
 password: ""
 
+prefix: "§4[Faction]"

@@ -15,6 +15,8 @@ import java.util.*
 
 class ChunkCommand : CommandExecutor, TabCompleter {
 
+    val messages = Factions.instance.messages
+
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>?): Boolean {
         val player = sender as? Player ?: return false
 
@@ -30,7 +32,7 @@ class ChunkCommand : CommandExecutor, TabCompleter {
                 val chunkId = UUID.fromString(chunk.persistentDataContainer.get(NamespacedKey.fromString("chunk_id")!!, PersistentDataType.STRING))
                 val chunkData = session!!.get(ChunkData::class.java, chunkId)
                 if (chunkData == null) {
-                    player.sendMessage("§4[Faction] §cEs gibt keine Daten über diesen Chunk")
+                    player.sendMessage(messages.failedToFetchChunkData())
                     return true
                 }
 
@@ -48,7 +50,7 @@ class ChunkCommand : CommandExecutor, TabCompleter {
                 val transaction = session.beginTransaction()
                 val factionPlayer = session.get(FactionPlayer::class.java, player.uniqueId)
                 if (factionPlayer?.faction == null) {
-                    player.sendMessage("§4[Faction] §cUm einen Chunk claimen zu können, müsstest du in einer Faction sein")
+                    player.sendMessage(messages.playerNotInFaction())
                     return true
                 }
 
@@ -56,7 +58,7 @@ class ChunkCommand : CommandExecutor, TabCompleter {
                 val chunkId = UUID.fromString(chunk.persistentDataContainer.get(NamespacedKey.fromString("chunk_id")!!, PersistentDataType.STRING))
                 var chunkData = session.get(ChunkData::class.java, chunkId)
                 if (chunkData?.faction != null) {
-                    player.sendMessage("§4[Faction] §cDieser Chunk wurde bereits geclaimt :/")
+                    player.sendMessage(messages.chunkAlreadyClaimed())
                     return true
                 }
 

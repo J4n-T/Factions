@@ -4,9 +4,13 @@ import dev.tieseler.factions.commands.ChunkCommand
 import dev.tieseler.factions.commands.FactionCommand
 import dev.tieseler.factions.commands.InviteCommand
 import dev.tieseler.factions.commands.PepoSitCommand
+import dev.tieseler.factions.language.German
+import dev.tieseler.factions.language.Messages
 import dev.tieseler.factions.listeners.ChunkListener
 import dev.tieseler.factions.listeners.PigListener
 import dev.tieseler.factions.listeners.PlayerListener
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.TextComponent
 import org.bukkit.Bukkit
 import org.bukkit.entity.Pig
 import org.bukkit.plugin.java.JavaPlugin
@@ -16,6 +20,9 @@ import java.util.concurrent.ConcurrentHashMap
 
 class Factions : JavaPlugin() {
 
+    lateinit var prefix: TextComponent
+    lateinit var messages: Messages
+
     var databaseConnector: DatabaseConnector? = null
     val pigs = ConcurrentHashMap<UUID, Pig>()
     var readSession: Session? = null
@@ -24,6 +31,10 @@ class Factions : JavaPlugin() {
         instance = this
         logger.info("Factions plugin enabled")
         saveDefaultConfig()
+
+        prefix = Component.text(config.getString("prefix")!!)
+        messages = German()
+
         databaseConnector = DatabaseConnector(
             config.getString("hostname")!!,
             config.getInt("port"),

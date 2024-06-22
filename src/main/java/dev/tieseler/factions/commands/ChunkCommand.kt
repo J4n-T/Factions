@@ -1,5 +1,9 @@
 package dev.tieseler.factions.commands
 
+import dev.tieseler.factions.Factions
+import dev.tieseler.factions.data.ChunkData
+import dev.tieseler.factions.data.ChunkState
+import dev.tieseler.factions.data.FactionPlayer
 import org.bukkit.NamespacedKey
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
@@ -7,6 +11,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.command.TabCompleter
 import org.bukkit.entity.Player
 import org.bukkit.persistence.PersistentDataType
+import java.util.*
 
 class ChunkCommand : CommandExecutor, TabCompleter {
 
@@ -20,14 +25,53 @@ class ChunkCommand : CommandExecutor, TabCompleter {
                 return true
             }
             "info" -> {
+                val session = Factions.instance.readSession
+                val chunk = player.location.chunk
+                val chunkId = UUID.fromString(chunk.persistentDataContainer.get(NamespacedKey.fromString("chunk_id")!!, PersistentDataType.STRING))
+                val chunkData = session!!.get(ChunkData::class.java, chunkId)
+                if (chunkData == null) {
+                    player.sendMessage("§4[Faction] §cEs gibt keine Daten über diesen Chunk")
+                    return true
+                }
 
                 val message = """
-                |Chunk Info:
-                | ID: ${player.location.chunk.persistentDataContainer.get(NamespacedKey.fromString("chunk_id")!!, PersistentDataType.STRING)}
-                | X: ${player.location.chunk.x}
-                | Z: ${player.location.chunk.z}
-                | 
+                    §4[Faction] §cChunk Info:§f
+                    §4[Faction] §cX/Z >> §a${chunk.x}/${chunk.z}
+                    §4[Faction] §cID >> §a${chunkData.id}
+                    §4[Faction] §cClaim >> §c${if (chunkData.state == ChunkState.CLAIMED) chunkData.faction!!.name else "§aWildness"}
                 """.trimIndent()
+                player.sendMessage(message)
+                return true
+            }
+            "claim" -> {
+                val session = Factions.instance.databaseConnector!!.sessionFactory!!.openSession()
+                val transaction = session.beginTransaction()
+                val factionPlayer = session.get(FactionPlayer::class.java, player.uniqueId)
+                if (factionPlayer?.faction == null) {
+                    player.sendMessage("§4[Faction] §cUm einen Chunk claimen zu können, müsstest du in einer Faction sein")
+                    return true
+                }
+
+                val chunk = player.location.chunk
+                val chunkId = UUID.fromString(chunk.persistentDataContainer.get(NamespacedKey.fromString("chunk_id")!!, PersistentDataType.STRING))
+                var chunkData = session.get(ChunkData::class.java, chunkId)
+                if (chunkData?.faction != null) {
+                    player.sendMessage("§4[Faction] §cDieser Chunk wurde bereits geclaimt :/")
+                    return true
+                }
+
+                chunkData = ChunkData()
+                chunkData.id = chunkId
+                chunkData.faction = factionPlayer.faction
+                chunkData.state = ChunkState.CLAIMED
+                chunkData.x = chunk.x
+                chunkData.z = chunk.z
+
+                session.persist(chunkData)
+                transaction.commit()
+
+                player.sendMessage("§4[Faction] §aDu hast den Chunk ${chunkData.x}/${chunkData.z} (${chunkId}) geclaimt")
+                return true
             }
         }
 
@@ -41,7 +85,7 @@ class ChunkCommand : CommandExecutor, TabCompleter {
         args: Array<out String>
     ): MutableList<String> {
         // List of all subcommands
-        val subcommands = mutableListOf("id", "info")
+        val subcommands = mutableListOf("id", "info", "claim")
 
         // If there are no arguments, suggest all subcommands
         if (args.isEmpty()) {

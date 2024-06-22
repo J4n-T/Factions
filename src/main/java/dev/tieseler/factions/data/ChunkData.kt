@@ -13,8 +13,8 @@ class ChunkData {
     @Id
     var id: UUID = UUID.randomUUID()
 
-    var x: Long = 0
-    var z: Long = 0
+    var x: Int = 0
+    var z: Int = 0
 
     var state: ChunkState = ChunkState.WILDERNESS
 

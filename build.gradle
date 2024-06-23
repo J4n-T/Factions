@@ -30,7 +30,7 @@ dependencies {
     //https://mvnrepository.com/artifact/org.postgresql/postgresql
     implementation("org.postgresql:postgresql:42.7.3")
 
-    implementation("me.clip:placeholderapi:2.11.7-DEV-Folia")
+    compileOnly("me.clip:placeholderapi:2.11.7-DEV-Folia")
 
     //hikari
     implementation("com.zaxxer:HikariCP:5.1.0")

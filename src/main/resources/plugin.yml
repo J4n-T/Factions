@@ -5,7 +5,7 @@ api-version: '1.20'
 load: STARTUP
 folia-supported: true
 
-softdepend:
+depend:
   - PlaceholderAPI
 
 commands:

@@ -3,14 +3,10 @@ package dev.tieseler.factions.listeners
 import dev.tieseler.factions.Factions
 import dev.tieseler.factions.data.FactionPlayer
 import net.kyori.adventure.text.Component
-import org.bukkit.NamespacedKey
-import org.bukkit.entity.Pig
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
-import org.bukkit.event.player.PlayerMoveEvent
 import org.bukkit.event.player.PlayerQuitEvent
-import org.bukkit.persistence.PersistentDataType
 
 class PlayerListener : Listener {
 

@@ -4,11 +4,13 @@ import dev.tieseler.factions.commands.ChunkCommand
 import dev.tieseler.factions.commands.FactionCommand
 import dev.tieseler.factions.commands.InviteCommand
 import dev.tieseler.factions.commands.PepoSitCommand
+import dev.tieseler.factions.data.ChunkData
 import dev.tieseler.factions.language.German
 import dev.tieseler.factions.language.Messages
 import dev.tieseler.factions.listeners.ChunkListener
 import dev.tieseler.factions.listeners.PigListener
 import dev.tieseler.factions.listeners.PlayerListener
+import dev.tieseler.factions.papi.FactionsExpansion
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import org.bukkit.Bukkit
@@ -26,10 +28,12 @@ class Factions : JavaPlugin() {
     var databaseConnector: DatabaseConnector? = null
     val pigs = ConcurrentHashMap<UUID, Pig>()
     var readSession: Session? = null
+    val chunks = ConcurrentHashMap<UUID, ChunkData>()
+
+    //TODO: Message of the day
 
     override fun onEnable() {
         instance = this
-        logger.info("Factions plugin enabled")
         saveDefaultConfig()
 
         prefix = Component.text(config.getString("prefix")!!)
@@ -44,6 +48,9 @@ class Factions : JavaPlugin() {
         )
 
         databaseConnector?.connect()
+        readSession = databaseConnector!!.sessionFactory!!.openSession()
+
+        FactionsExpansion().register()
 
         server.pluginManager.registerEvents(ChunkListener(), this)
         server.pluginManager.registerEvents(PigListener(), this)
@@ -53,8 +60,6 @@ class Factions : JavaPlugin() {
         getCommand("peposit")?.setExecutor(PepoSitCommand())
         getCommand("faction")?.setExecutor(FactionCommand())
         getCommand("invite")?.setExecutor(InviteCommand())
-
-        readSession = databaseConnector!!.sessionFactory!!.openSession()
 
         Bukkit.getGlobalRegionScheduler().runAtFixedRate(this, {
             pigs.forEach(100) { id, pig ->

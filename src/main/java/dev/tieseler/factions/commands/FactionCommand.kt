@@ -188,17 +188,19 @@ class FactionCommand : CommandExecutor, TabCompleter {
             "edit" -> {
                 if (args.size < 2) {
                     player.sendMessage(Component.text("§4[Faction] §cDu musst einen Unterbefehl angeben!"))
+                    session.close()
                     return true
                 }
-
-                val factionPlayer = session.get(FactionPlayer::class.java, player.uniqueId)
-                if (factionPlayer.faction == null) {
+                val faction = factionPlayer.faction
+                if (faction == null) {
                     player.sendMessage(messages.playerNotInFaction())
+                    session.close()
                     return true
                 }
 
-                if (factionPlayer!!.faction!!.leader != factionPlayer) {
+                if (faction.leader != factionPlayer) {
                     player.sendMessage(messages.playerNotFactionLeader())
+                    session.close()
                     return true
                 }
 
@@ -206,14 +208,34 @@ class FactionCommand : CommandExecutor, TabCompleter {
                     "name" -> {
                         if (args.size < 3) {
                             player.sendMessage(messages.missingFactionName())
+                            session.close()
                             return true
                         }
 
                         val name = args[2]
-                        factionPlayer.faction!!.name = name
-                        session.persist(factionPlayer.faction)
+                        faction.name = name
+                        session.persist(faction)
                         transaction.commit()
                         session.close()
+
+                        player.sendMessage(messages.factionNameChanged())
+                        return true
+                    }
+                    "description" -> {
+                        if (args.size < 3) {
+                            player.sendMessage(messages.missingFactionDescription())
+                            session.close()
+                            return true
+                        }
+
+                        val description = args.sliceArray(2 until args.size).joinToString(" ")
+                        faction.description = description
+                        session.persist(faction)
+                        transaction.commit()
+                        session.close()
+
+                        player.sendMessage(messages.factionDescriptionChanged())
+                        return true
                     }
                 }
             }

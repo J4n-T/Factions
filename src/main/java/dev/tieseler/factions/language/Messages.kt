@@ -17,6 +17,8 @@ interface Messages {
     fun factionAlreadyExists(factionName: String): Component
     fun factionCreated(): Component
     fun factionDisbanded(): Component
+    fun factionNameChanged(): Component
+    fun factionDescriptionChanged(): Component
 
     fun targetNotSameFaction(targetName: Component): Component
 

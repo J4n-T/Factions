@@ -70,6 +70,14 @@ class German : Messages {
         return prefix.append(text(" Deine Faction wurde aufgelöst").color(GREEN))
     }
 
+    override fun factionNameChanged(): Component {
+        return prefix.append(text(" Der Name deiner Faction wurde geändert").color(GREEN))
+    }
+
+    override fun factionDescriptionChanged(): Component {
+        return prefix.append(text(" Die Beschreibung deiner Faction wurde geändert").color(GREEN))
+    }
+
     override fun targetNotSameFaction(targetName: Component): Component {
         return prefix.append(text(" Der Spieler ").color(RED).append(targetName).append(text(" ist nicht in deiner Faction").color(RED)))
     }

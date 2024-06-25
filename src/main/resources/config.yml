@@ -9,3 +9,8 @@ prefix: "§4[Faction]"
 
 # Message is appended to the end of the format
 chatFormat: "%luckperms-prefix% %player_name% §7» "
+
+
+pvp:
+  crystal: true
+  tnt_minecart: true

@@ -7,10 +7,7 @@ import dev.tieseler.factions.commands.PepoSitCommand
 import dev.tieseler.factions.data.ChunkData
 import dev.tieseler.factions.language.German
 import dev.tieseler.factions.language.Messages
-import dev.tieseler.factions.listeners.ChatListener
-import dev.tieseler.factions.listeners.ChunkListener
-import dev.tieseler.factions.listeners.PigListener
-import dev.tieseler.factions.listeners.PlayerListener
+import dev.tieseler.factions.listeners.*
 import dev.tieseler.factions.papi.FactionsExpansion
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
@@ -32,7 +29,6 @@ class Factions : JavaPlugin() {
     val chunks = ConcurrentHashMap<UUID, ChunkData>()
 
     //TODO: Message of the day
-    //TODO: Disable Crystal PvP
 
     override fun onEnable() {
         instance = this
@@ -58,6 +54,9 @@ class Factions : JavaPlugin() {
         server.pluginManager.registerEvents(PigListener(), this)
         server.pluginManager.registerEvents(PlayerListener(), this)
         server.pluginManager.registerEvents(ChatListener(), this)
+
+        if (config.getBoolean("pvp.crystal")) server.pluginManager.registerEvents(CrystalListener(), this)
+        if (config.getBoolean("pvp.tnt_minecart")) server.pluginManager.registerEvents(TntMinecartListener(), this)
 
         getCommand("chunk")?.setExecutor(ChunkCommand())
         getCommand("peposit")?.setExecutor(PepoSitCommand())

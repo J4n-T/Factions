@@ -4,6 +4,7 @@ import dev.tieseler.factions.Factions
 import dev.tieseler.factions.data.ChunkData
 import dev.tieseler.factions.data.ChunkState
 import dev.tieseler.factions.data.FactionPlayer
+import dev.tieseler.factions.util.UUIDUtil
 import org.bukkit.NamespacedKey
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
@@ -21,10 +22,10 @@ class ChunkCommand : CommandExecutor, TabCompleter {
         val player = sender as? Player ?: return false
 
         if (args!!.isEmpty()) return false
-        when (args[0]) {
+        return when (args[0]) {
             "id" -> {
                 player.sendMessage("Your chunk id is: ${player.location.chunk.persistentDataContainer.get(NamespacedKey.fromString("chunk_id")!!, PersistentDataType.STRING)}")
-                return true
+                true
             }
             "info" -> {
                 val session = Factions.instance.readSession
@@ -43,7 +44,7 @@ class ChunkCommand : CommandExecutor, TabCompleter {
                     §4[Faction] §cClaim >> §c${if (chunkData.state == ChunkState.CLAIMED) chunkData.faction!!.name else "§aWildness"}
                 """.trimIndent()
                 player.sendMessage(message)
-                return true
+                true
             }
             "claim" -> {
                 val session = Factions.instance.databaseConnector!!.sessionFactory!!.openSession()
@@ -72,12 +73,53 @@ class ChunkCommand : CommandExecutor, TabCompleter {
                 session.persist(chunkData)
                 transaction.commit()
 
-                player.sendMessage("§4[Faction] §aDu hast den Chunk ${chunkData.x}/${chunkData.z} (${chunkId}) geclaimt")
-                return true
+                player.sendMessage(messages.chunkClaimedMessage(chunk))
+                true
+            }
+            "unclaim" -> {
+                val session = Factions.instance.databaseConnector?.sessionFactory?.openSession() ?: return false
+                val transaction = session.beginTransaction()
+                val factionPlayer = session.get(FactionPlayer::class.java, player.uniqueId) ?: return false
+                if (factionPlayer.faction == null) {
+                    player.sendMessage(messages.playerNotInFaction())
+                    return true
+                }
+
+                val chunk = player.location.chunk
+                val chunkId = UUIDUtil().parse(chunk.persistentDataContainer.get(NamespacedKey.fromString("chunk_id")!!, PersistentDataType.STRING))
+                if (chunkId == null) {
+                    player.sendMessage(messages.chunkNotClaimed())
+                    return true
+                }
+
+                val chunkData = session.get(ChunkData::class.java, chunkId)
+                if (chunkData == null) {
+                    player.sendMessage(messages.failedToFetchChunkData())
+                    return true
+                }
+
+                if (chunkData.faction != factionPlayer.faction) {
+                    player.sendMessage(messages.chunkNotClaimedByPlayersFaction())
+                    return true
+                }
+
+                if (factionPlayer.faction!!.leader != factionPlayer) {
+                    player.sendMessage(messages.playerNotFactionLeader())
+                    return true
+                }
+
+                session.remove(chunkData)
+                transaction.commit()
+                session.close()
+
+                player.sendMessage(messages.chunkUnclaimed())
+                true
+            }
+            else -> {
+                //TODO: Implement
+                false
             }
         }
-
-        TODO("Not yet implemented")
     }
 
     override fun onTabComplete(
@@ -87,7 +129,7 @@ class ChunkCommand : CommandExecutor, TabCompleter {
         args: Array<out String>
     ): MutableList<String> {
         // List of all subcommands
-        val subcommands = mutableListOf("id", "info", "claim")
+        val subcommands = mutableListOf("id", "info", "claim", "unclaim")
 
         // If there are no arguments, suggest all subcommands
         if (args.isEmpty()) {

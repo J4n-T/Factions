@@ -63,6 +63,7 @@ class ChunkListener : Listener {
         val factionMember = Factions.instance.readSession?.get(FactionPlayer::class.java, event.player.uniqueId) ?: return
         if (factionMember.faction != faction) {
             event.isCancelled = true
+            return
         }
 
         //Fetch claims and check if there are any relevant claims

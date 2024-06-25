@@ -20,10 +20,10 @@ class FactionsExpansion : PlaceholderExpansion() {
     }
 
     override fun onPlaceholderRequest(player: Player?, params: String): String? {
-        val session = Factions.instance.readSession ?: return ""
-        val placeholder = params.lowercase()
-        val factionPlayer = session.get(FactionPlayer::class.java, player!!.uniqueId)
+        val session = Factions.instance.databaseConnector?.sessionFactory?.openSession() ?: return ""
+        val factionPlayer = session.get(FactionPlayer::class.java, player!!.uniqueId) ?: return ""
         val faction = factionPlayer.faction ?: return ""
+        val placeholder = params.lowercase()
 
         return when (placeholder) {
             "name" -> {
@@ -32,6 +32,14 @@ class FactionsExpansion : PlaceholderExpansion() {
 
             "description" -> {
                 faction.description
+            }
+
+            "displayname" -> {
+                faction.displayName
+            }
+
+            "acronym" -> {
+                faction.acronym
             }
 
             "mode" -> {

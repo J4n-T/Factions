@@ -10,7 +10,11 @@ class Faction {
     @Id
     var id: UUID? = null
 
+    @Column(unique = true)
     var name: String? = null
+
+    var acronym: String? = null
+    var displayName: String? = null
     var description: String? = null
 
     @OneToOne
@@ -40,6 +44,9 @@ class Faction {
 
     @OneToMany(cascade = [CascadeType.ALL], mappedBy = "faction")
     var roles: MutableList<Role> = mutableListOf()
+
+    @OneToMany(cascade = [CascadeType.ALL], mappedBy = "faction")
+    var chunks: MutableList<ChunkData> = mutableListOf()
 
     var createdAt: Long? = null
 

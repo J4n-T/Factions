@@ -1,6 +1,7 @@
 package dev.tieseler.factions.commands
 
 import dev.tieseler.factions.Factions
+import dev.tieseler.factions.data.ChunkData
 import dev.tieseler.factions.data.Faction
 import dev.tieseler.factions.data.FactionPlayer
 import net.kyori.adventure.text.Component
@@ -57,8 +58,14 @@ class FactionCommand : CommandExecutor, TabCompleter {
                     return true
                 }
 
+                if (!validateFactionName(args[1])) {
+                    player.sendMessage(messages.factionNameInvalid())
+                    session.close()
+                    return true
+                }
+
                 val query = session.createQuery("FROM Faction WHERE name = :name", Faction::class.java)
-                query.setParameter("name", args[0])
+                query.setParameter("name", args[1])
                 val result = query.setMaxResults(1).uniqueResult()
                 if (result != null) {
                     player.sendMessage(messages.factionAlreadyExists(result.name!!))
@@ -212,6 +219,12 @@ class FactionCommand : CommandExecutor, TabCompleter {
                             return true
                         }
 
+                        if (!validateFactionName(args[2])) {
+                            player.sendMessage(messages.factionNameInvalid())
+                            session.close()
+                            return true
+                        }
+
                         val name = args[2]
                         faction.name = name
                         session.persist(faction)
@@ -219,6 +232,50 @@ class FactionCommand : CommandExecutor, TabCompleter {
                         session.close()
 
                         player.sendMessage(messages.factionNameChanged())
+                        return true
+                    }
+                    "displayname" -> {
+                        if (args.size < 3) {
+                            player.sendMessage(messages.missingFactionName())
+                            session.close()
+                            return true
+                        }
+
+                        val displayName = args[2]
+                        if (displayName.length > 32) {
+                            player.sendMessage(messages.factionDisplayNameToLong())
+                            session.close()
+                            return true
+                        }
+
+                        faction.displayName = displayName
+                        session.persist(faction)
+                        transaction.commit()
+                        session.close()
+
+                        player.sendMessage(messages.factionDisplayNameChanged())
+                        return true
+                    }
+                    "acronym" -> {
+                        if (args.size < 3) {
+                            player.sendMessage(messages.missingFactionAcronym())
+                            session.close()
+                            return true
+                        }
+
+                        val acronym = args[2]
+                        if (acronym.length > 6) {
+                            player.sendMessage(messages.factionAcronymToLong())
+                            session.close()
+                            return true
+                        }
+
+                        faction.acronym = acronym
+                        session.persist(faction)
+                        transaction.commit()
+                        session.close()
+
+                        player.sendMessage(messages.factionAcronymChanged())
                         return true
                     }
                     "description" -> {
@@ -244,6 +301,10 @@ class FactionCommand : CommandExecutor, TabCompleter {
         return false
     }
 
+    private fun validateFactionName(name: String): Boolean {
+        return name.matches(Regex("^[a-zA-Z0-9_]{3,16}$"))
+    }
+
     override fun onTabComplete(
         sender: CommandSender,
         command: Command,
@@ -251,7 +312,7 @@ class FactionCommand : CommandExecutor, TabCompleter {
         args: Array<out String>
     ): MutableList<String> {
         // List of all subcommands
-        val subcommands = mutableListOf("create", "disband", "invite", "kick")
+        val subcommands = mutableListOf("create", "disband", "invite", "kick", "edit")
         var completions = subcommands
 
         // If there are no arguments, suggest all subcommands
@@ -278,6 +339,9 @@ class FactionCommand : CommandExecutor, TabCompleter {
                         }
                         session.close()
                     } else return mutableListOf()
+                }
+                "edit" -> {
+                    completions = mutableListOf("name", "displayname", "acronym", "description")
                 }
                 else -> return mutableListOf()
             }

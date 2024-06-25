@@ -15,10 +15,12 @@ import java.util.*
 
 class InviteCommand : CommandExecutor, TabCompleter {
 
+    val messages = Factions.instance.messages
+
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>?): Boolean {
         val player = sender as? Player ?: return false
         if (args.isNullOrEmpty()) {
-            player.sendMessage("§4[Factions] §cBitte gib einen Spieler oder einen Unterbefehl ein an.")
+            player.sendMessage(messages.inviteCommandPlayerNameOrSubCommandRequired())
             return true
         }
 
@@ -29,26 +31,26 @@ class InviteCommand : CommandExecutor, TabCompleter {
         when (args[0].lowercase()) {
             "accept" -> {
                 if (args.size < 2) {
-                    player.sendMessage("§4[Factions] §cBitte gib den Namen der Faction an.")
+                    player.sendMessage(messages.factionNameMissing())
                     return true
                 }
 
                 if (factionPlayer.faction != null) {
-                    player.sendMessage(Component.text("§4[Faction] §cDu bist bereits in einer Faction!"))
+                    player.sendMessage(messages.alreadyInFaction())
                     session.close()
                     return true
                 }
 
-                val invite = factionPlayer.invites.stream().filter { it.faction!!.name == args[2] }.findFirst().orElse(null)
+                val invite = factionPlayer.invites.stream().filter { it.faction!!.name == args[1] }.findFirst().orElse(null)
                 if (invite == null) {
-                    player.sendMessage(Component.text("§4[Faction] §cDie Einladung konnte nicht gefunden werden :/"))
+                    player.sendMessage(messages.inviteNotFound())
                     session.close()
                     return true
                 }
 
                 val faction = invite.faction
                 if (faction == null) {
-                    player.sendMessage(Component.text("§4[Faction] §cDie Daten der Faction konnten nicht abgerufen werden :c"))
+                    player.sendMessage(messages.failedToFetchFactionData())
                     session.close()
                     return true
                 }
@@ -62,62 +64,69 @@ class InviteCommand : CommandExecutor, TabCompleter {
                 transaction.commit()
                 session.close()
 
-                player.sendMessage(Component.text("§4[Faction] §aDu bist der Faction §c${faction.name} §abeigetreten!"))
+                player.sendMessage(messages.joinedFaction(faction.name!!))
                 Bukkit.getServer().broadcast(Component.text("§4[Announcement] §aDer Spieler §c${player.name} §aist der Faction §c${faction.name} §abeigetreten!"))
                 return true
 
             }
             "deny" -> {
                 if (args.size < 2) {
-                    player.sendMessage("§4[Factions] §cBitte gib den Namen der Faction an.")
+                    player.sendMessage(messages.factionNameMissing())
                     return true
                 }
 
-                val invite = factionPlayer.invites.stream().filter { it.faction!!.name == args[2] }.findFirst().orElse(null)
+                val invite = factionPlayer.invites.stream().filter { it.faction!!.name == args[1] }.findFirst().orElse(null)
                 if (invite == null) {
-                    player.sendMessage(Component.text("§4[Faction] §cDie Einladung konnte nicht gefunden werden :/"))
+                    player.sendMessage(messages.inviteNotFound())
                     session.close()
                     return true
                 }
+
+                val factionName = invite.faction!!.name!!
 
                 session.remove(invite)
                 transaction.commit()
                 session.close()
 
-                val sendersName = Bukkit.getOfflinePlayer(invite.sender!!.id!!).name
-                player.sendMessage(Component.text("§4[Faction] §aDu hast die Einladung von §c$sendersName §c(${invite.faction!!.name!!}) §aabgelehnt!"))
+                player.sendMessage(messages.inviteDeclined(factionName))
                 return true
 
             }
             else -> {
                 if (factionPlayer.faction == null) {
-                    player.sendMessage(Component.text("§4[Faction] §cUm einen anderen Spieler einladen zu können, müsstest du selbst in einer Faction sein :P"))
+                    player.sendMessage(messages.playerNotInFaction())
                     session.close()
                     return true
                 }
 
-                val targetPlayer = Bukkit.getPlayer(args[1])
+                val targetPlayer = Bukkit.getPlayer(args[0])
                 if (targetPlayer == null) {
-                    player.sendMessage(Component.text("§4[Faction] §cDer Spieler §a${args[1]} §ckonnte nicht eingeladen werden, da er nicht existiert oder nicht online ist :("))
+                    player.sendMessage(messages.inviteFailedPlayerNotFound(args[0]))
                     session.close()
                     return true
                 }
 
                 if (targetPlayer.uniqueId == player.uniqueId) {
-                    player.sendMessage(Component.text("§4[Faction] §cDu bist absolut einzigartig :3! Dich kann es nicht 2x in einer Faction geben <3"))
+                    player.sendMessage(messages.inviteFailedCannotInviteYourself())
                     return true
                 }
 
                 val targetFactionPlayer = session.get(FactionPlayer::class.java, targetPlayer.uniqueId)
                 if (targetFactionPlayer == null) {
-                    player.sendMessage(Component.text("§4[Faction] Die Daten des Spielers konnten nicht abgerufen werden :c"))
+                    player.sendMessage(messages.failedToFetchPlayerData(targetPlayer.displayName()))
                     session.close()
                     return true
                 }
 
                 val faction = factionPlayer.faction
                 if (faction == null) {
-                    player.sendMessage(Component.text("§4[Faction] Die Daten deiner Faction konnten nicht abgerufen werden :c"))
+                    player.sendMessage(messages.failedToFetchFactionData())
+                    session.close()
+                    return true
+                }
+
+                if (targetFactionPlayer.faction == faction) {
+                    player.sendMessage(messages.inviteFailedPlayerAlreadyInYourFaction(targetPlayer.displayName()))
                     session.close()
                     return true
                 }
@@ -134,7 +143,7 @@ class InviteCommand : CommandExecutor, TabCompleter {
                 transaction.commit()
                 session.close()
 
-                player.sendMessage(Component.text("§4[Faction] §aDu hast §c${targetPlayer.name} §ain deine Faction eingeladen"))
+                player.sendMessage(messages.invited(targetPlayer.displayName()))
 
                 val targetMessage = Component.text("§4[Faction] §aDu wurdest von §c${player.name} §ain die Faction §c${faction.name} §aeingeladen! ")
                     .append(Component.text("§aAnnehmen §7| ").clickEvent(ClickEvent.runCommand("/invite accept ${faction.name}")))

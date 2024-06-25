@@ -14,16 +14,27 @@ class PlayerListener : Listener {
     fun onPlayerJoin(event: PlayerJoinEvent) {
         val session = Factions.instance.databaseConnector!!.sessionFactory!!.openSession()
         val transaction = session.beginTransaction()
-        val factionPlayer = session.get(FactionPlayer::class.java, event.player.uniqueId)
+        var factionPlayer = session.get(FactionPlayer::class.java, event.player.uniqueId)
         if (factionPlayer == null) {
-            val newFactionPlayer = FactionPlayer()
-            newFactionPlayer.id = event.player.uniqueId
-            session.persist(newFactionPlayer)
+            factionPlayer = FactionPlayer()
+            factionPlayer.id = event.player.uniqueId
+            session.persist(factionPlayer)
             transaction.commit()
         }
-        session.close()
 
         event.joinMessage(Component.text("§7[§a+§7] Willkommen zurück, §a").append(event.player.displayName()))
+
+        val faction = factionPlayer.faction
+        if (faction == null) {
+            session.close()
+            return
+        }
+
+        if (faction.motd != null) {
+            event.player.sendMessage(Component.text("§7[${if (faction.displayName == null) faction.name!! else faction.displayName!!}§7] ${faction.motd}"))
+        }
+
+        session.close()
     }
 
     @EventHandler

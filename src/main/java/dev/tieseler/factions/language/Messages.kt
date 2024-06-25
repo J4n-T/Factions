@@ -50,4 +50,9 @@ interface Messages {
     fun inviteFailedCannotInviteYourself(): Component
     fun inviteFailedPlayerAlreadyInYourFaction(displayName: Component): Component
     fun inviteCommandPlayerNameOrSubCommandRequired(): Component
+
+    fun motd(factionName: String, motd: String): Component
+    fun noMotd(): Component
+    fun missingMotd(): Component
+    fun motdChanged(): Component
 }

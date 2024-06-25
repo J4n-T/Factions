@@ -17,6 +17,8 @@ class Faction {
     var displayName: String? = null
     var description: String? = null
 
+    var motd: String? = null
+
     @OneToOne
     var leader: FactionPlayer? = null
 

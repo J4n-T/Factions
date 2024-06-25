@@ -192,6 +192,20 @@ class FactionCommand : CommandExecutor, TabCompleter {
                 Bukkit.getServer().broadcast(Component.text("§4[Announcement] §cDer Spieler §4${target.name} §cwurde aus der Faction §4${faction.name} §cgekickt!"))
                 return true
             }
+            "motd" -> {
+                val faction = factionPlayer.faction
+                if (faction == null) {
+                    player.sendMessage(messages.playerNotInFaction())
+                    session.close()
+                    return true
+                }
+
+                if (args.size < 2) {
+                    player.sendMessage(messages.missingMotd())
+                    session.close()
+                    return true
+                }
+            }
             "edit" -> {
                 if (args.size < 2) {
                     player.sendMessage(Component.text("§4[Faction] §cDu musst einen Unterbefehl angeben!"))
@@ -294,6 +308,28 @@ class FactionCommand : CommandExecutor, TabCompleter {
                         player.sendMessage(messages.factionDescriptionChanged())
                         return true
                     }
+                    "motd" -> {
+                        if (args.size < 3) {
+                            player.sendMessage(messages.missingMotd())
+                            session.close()
+                            return true
+                        }
+
+                        if (factionPlayer.faction!!.leader != factionPlayer) {
+                            player.sendMessage(messages.playerNotFactionLeader())
+                            session.close()
+                            return true
+                        }
+
+                        val motd = args.sliceArray(2 until args.size).joinToString(" ")
+                        faction.motd = motd
+                        session.persist(faction)
+                        transaction.commit()
+                        session.close()
+
+                        player.sendMessage(messages.motdChanged())
+                        return true
+                    }
                 }
             }
         }
@@ -312,7 +348,7 @@ class FactionCommand : CommandExecutor, TabCompleter {
         args: Array<out String>
     ): MutableList<String> {
         // List of all subcommands
-        val subcommands = mutableListOf("create", "disband", "invite", "kick", "edit")
+        val subcommands = mutableListOf("create", "disband", "invite", "kick", "edit", "motd")
         var completions = subcommands
 
         // If there are no arguments, suggest all subcommands
@@ -341,7 +377,7 @@ class FactionCommand : CommandExecutor, TabCompleter {
                     } else return mutableListOf()
                 }
                 "edit" -> {
-                    completions = mutableListOf("name", "displayname", "acronym", "description")
+                    completions = mutableListOf("name", "displayname", "acronym", "description", "motd")
                 }
                 else -> return mutableListOf()
             }

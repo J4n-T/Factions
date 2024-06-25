@@ -120,6 +120,22 @@ class German : Messages {
         return prefix.append(text(" Bitte gib den Namen eines Spielers oder einen Subcommand an").color(RED))
     }
 
+    override fun motd(factionName: String, motd: String): Component {
+        return text("§7[$factionName§7] Nachricht des Tages: ").color(GRAY).append(text(motd).color(GREEN))
+    }
+
+    override fun noMotd(): Component {
+        return prefix.append(text(" Es gibt keine Nachricht des Tages").color(RED))
+    }
+
+    override fun missingMotd(): Component {
+        return prefix.append(text(" Bitte gib eine Nachricht des Tages an").color(RED))
+    }
+
+    override fun motdChanged(): Component {
+        return prefix.append(text(" Die Nachricht des Tages wurde geändert").color(GREEN))
+    }
+
     override fun factionCreated(): Component {
         return prefix.append(text(" Deine Faction wurde gegründet").color(GREEN))
     }

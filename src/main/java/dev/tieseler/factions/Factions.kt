@@ -31,7 +31,6 @@ class Factions : JavaPlugin() {
 
     //TODO: Rolesystem
     //TODO: Check if creeper will destroy blocks on claimed chunks (creeper, wither, tnt_minecart, ghast)
-    //TODO: Bypass Mode
 
     override fun onEnable() {
         instance = this
@@ -60,6 +59,7 @@ class Factions : JavaPlugin() {
 
         if (config.getBoolean("pvp.crystal")) server.pluginManager.registerEvents(CrystalListener(), this)
         if (config.getBoolean("pvp.tnt_minecart")) server.pluginManager.registerEvents(TntMinecartListener(), this)
+        if (config.getBoolean("pvp.respawn_anchor")) server.pluginManager.registerEvents(RespawnAnchorListener(), this)
 
         getCommand("chunk")?.setExecutor(ChunkCommand())
         getCommand("peposit")?.setExecutor(PepoSitCommand())

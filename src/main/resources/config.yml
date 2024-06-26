@@ -14,3 +14,4 @@ chatFormat: "%luckperms-prefix% %player_name% §7» "
 pvp:
   crystal: true
   tnt_minecart: true
+  respawn_anchor: true

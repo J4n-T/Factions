@@ -7,6 +7,7 @@ import dev.tieseler.factions.data.Role
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentIteratorType
 import net.kyori.adventure.text.event.HoverEvent
+import net.kyori.adventure.text.serializer.ComponentSerializer
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
@@ -343,17 +344,27 @@ class FactionCommand : CommandExecutor, TabCompleter {
                     }
 
                     val roles = faction.roles
-                    var response: Component? = null
-                    var firstLoop = true
-                    roles.forEach { role ->
-                        if (firstLoop) {
-                            response = messages.role(role.name, role.acronym!!, role.weight, role.players.size)
-                            firstLoop = false
-                        } else response!!.appendNewline().append(messages.role(role.name, role.acronym!!, role.weight, role.players.size))
+                    var response: Component = Component.space().append(messages.rolesListHeader())
+
+                    if (roles.isEmpty()) {
+                        player.sendMessage(messages.noRoles())
+                        session.close()
+                        return true
                     }
 
+                    roles.forEach { role ->
+                        response = response.appendNewline().append(messages.role(role.name, role.acronym!!, role.weight, role.players.size))
+                    }
+
+                    player.sendMessage(response)
                     session.close()
-                    player.sendMessage(response!!)
+                    return true
+                }
+
+                val faction = factionPlayer.faction
+                if (faction == null) {
+                    player.sendMessage(messages.playerNotInFaction())
+                    session.close()
                     return true
                 }
 
@@ -373,13 +384,6 @@ class FactionCommand : CommandExecutor, TabCompleter {
 
                         if (args.size < 5) {
                             player.sendMessage(messages.missingRoleWeight())
-                            session.close()
-                            return true
-                        }
-
-                        val faction = factionPlayer.faction
-                        if (faction == null) {
-                            player.sendMessage(messages.playerNotInFaction())
                             session.close()
                             return true
                         }
@@ -420,16 +424,50 @@ class FactionCommand : CommandExecutor, TabCompleter {
                         player.sendMessage(messages.roleCreated(roleName))
                         return true
                     }
-                    else -> {
+                    "delete" -> {
                         if (args.size < 3) {
-                            player.sendMessage(messages.missingSubCommand())
+                            player.sendMessage(messages.missingRoleName())
                             session.close()
                             return true
                         }
 
-                        val faction = factionPlayer.faction
-                        if (faction == null) {
-                            player.sendMessage(messages.playerNotInFaction())
+                        val role = faction.roles.firstOrNull { it.name == args[2] }
+                        if (role == null) {
+                            player.sendMessage(messages.roleNotFound(args[2]))
+                            session.close()
+                            return true
+                        }
+
+                        val playersRole = factionPlayer.role
+                        if (playersRole == null && faction.leader != factionPlayer) {
+                            player.sendMessage(messages.playerNotFactionLeader())
+                            session.close()
+                            return true
+                        }
+
+                        if (playersRole!!.weight <= role.weight) {
+                            player.sendMessage(messages.notPermitted())
+                            session.close()
+                            return true
+                        }
+
+                        role.players.forEach { targetPlayer ->
+                            targetPlayer.role = null
+                            session.persist(player)
+                        }
+
+                        faction.roles.remove(role)
+                        session.remove(role)
+                        session.persist(faction)
+                        transaction.commit()
+                        session.close()
+
+                        player.sendMessage(messages.roleDeleted(role.name))
+                        return true
+                    }
+                    else -> {
+                        if (args.size < 3) {
+                            player.sendMessage(messages.missingSubCommand())
                             session.close()
                             return true
                         }

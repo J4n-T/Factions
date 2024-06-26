@@ -30,7 +30,6 @@ class Factions : JavaPlugin() {
     val chunks = ConcurrentHashMap<UUID, ChunkData>()
 
     //TODO: Rolesystem
-    //TODO: Check if creeper will destroy blocks on claimed chunks (creeper, wither, tnt_minecart, ghast)
 
     override fun onEnable() {
         instance = this

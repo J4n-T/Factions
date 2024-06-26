@@ -212,6 +212,10 @@ class German : Messages {
         return prefix.append(text(" Du hast keine Berechtigung für diese Aktion").color(RED))
     }
 
+    override fun cannotKickYourself(): Component {
+        return prefix.append(text(" ... wieso?").color(RED))
+    }
+
     override fun factionCreated(): Component {
         return prefix.append(text(" Deine Faction wurde gegründet").color(GREEN))
     }

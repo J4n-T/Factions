@@ -78,4 +78,6 @@ interface Messages {
     fun motdChanged(): Component
 
     fun notPermitted(): Component
+
+    fun cannotKickYourself(): Component
 }

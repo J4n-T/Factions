@@ -156,6 +156,12 @@ class FactionCommand : CommandExecutor, TabCompleter {
                     return true
                 }
 
+                if (target == player) {
+                    player.sendMessage(messages.cannotKickYourself())
+                    session.close()
+                    return true
+                }
+
                 val targetFactionPlayer = session.get(FactionPlayer::class.java, target.uniqueId)
                 if (targetFactionPlayer == null) {
                     player.sendMessage(messages.failedToFetchPlayerData(target.displayName()))

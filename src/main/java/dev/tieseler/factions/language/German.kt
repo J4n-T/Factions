@@ -104,6 +104,26 @@ class German : Messages {
         return prefix.append(text(" Die Rolle ").color(RED).append(text(roleName).color(GOLD).append(text(" konnte nicht gefunden werden").color(RED))))
     }
 
+    override fun roleDeleted(roleName: String): Component {
+        return prefix.append(text(" Die Rolle ").color(GREEN).append(text(roleName).color(GOLD).append(text(" wurde gelöscht").color(GREEN))))
+    }
+
+    override fun noRoles(): Component {
+        return prefix.append(text(" Es gibt keine Rollen").color(RED))
+    }
+
+    override fun rolesListHeader(): Component {
+        return prefix.append(text(" Rollen:").color(GOLD))
+    }
+
+    override fun bypassModeEnabled(): Component {
+        return prefix.append(text(" Der Bypass-Modus wurde aktiviert").color(RED))
+    }
+
+    override fun bypassModeDisabled(): Component {
+        return prefix.append(text(" Der Bypass-Modus wurde deaktiviert").color(GREEN))
+    }
+
     override fun factionAlreadyExists(factionName: String): Component {
         return prefix.append(text(" Die Faction ").color(RED).append(text(factionName).color(GREEN).append(text(" existiert bereits").color(RED))))
     }
@@ -186,6 +206,10 @@ class German : Messages {
 
     override fun motdChanged(): Component {
         return prefix.append(text(" Die Nachricht des Tages wurde geändert").color(GREEN))
+    }
+
+    override fun notPermitted(): Component {
+        return prefix.append(text(" Du hast keine Berechtigung für diese Aktion").color(RED))
     }
 
     override fun factionCreated(): Component {

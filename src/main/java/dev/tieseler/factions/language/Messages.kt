@@ -29,6 +29,12 @@ interface Messages {
     fun role(name: String, acronym: String, weight: Int, members: Int): Component
     fun roleCreated(roleName: String): Component
     fun roleNotFound(roleName: String): Component
+    fun roleDeleted(roleName: String): Component
+    fun noRoles(): Component
+    fun rolesListHeader(): Component
+
+    fun bypassModeEnabled(): Component
+    fun bypassModeDisabled(): Component
 
     fun alreadyInFaction(): Component
     fun selectFactionMode(): Component
@@ -70,4 +76,6 @@ interface Messages {
     fun noMotd(): Component
     fun missingMotd(): Component
     fun motdChanged(): Component
+
+    fun notPermitted(): Component
 }

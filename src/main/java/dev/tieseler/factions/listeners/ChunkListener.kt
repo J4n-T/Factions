@@ -2,15 +2,17 @@ package dev.tieseler.factions.listeners
 
 import dev.tieseler.factions.Factions
 import dev.tieseler.factions.data.ChunkData
-import dev.tieseler.factions.data.ChunkState
 import dev.tieseler.factions.data.Claim
 import dev.tieseler.factions.data.FactionPlayer
+import dev.tieseler.factions.util.PermissionUtil
 import dev.tieseler.factions.util.UUIDUtil
 import org.bukkit.Chunk
 import org.bukkit.NamespacedKey
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockBreakEvent
+import org.bukkit.event.block.BlockPlaceEvent
+import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.world.ChunkLoadEvent
 import org.bukkit.event.world.ChunkPopulateEvent
 import org.bukkit.event.world.ChunkUnloadEvent
@@ -27,10 +29,11 @@ class ChunkListener : Listener {
     @EventHandler
     fun onChunkLoad(event: ChunkLoadEvent) {
         val chunkId = getChunkId(event.chunk) ?: setChunkId(event.chunk, UUID.randomUUID())
-        val session = Factions.instance.readSession!!
+        val session = Factions.instance.databaseConnector!!.sessionFactory!!.openSession()
         while (!session.isOpen) {
             Thread.sleep(100)
         }
+
         var chunkData = session.get(ChunkData::class.java, chunkId)
         if (chunkData == null) {
             chunkData = ChunkData()
@@ -41,6 +44,7 @@ class ChunkListener : Listener {
             val transaction = session.beginTransaction()
             session.persist(chunkData)
             transaction.commit()
+            session.close()
         }
 
         Factions.instance.chunks[chunkId] = chunkData
@@ -55,36 +59,40 @@ class ChunkListener : Listener {
     @EventHandler
     fun onBlockBreak(event: BlockBreakEvent) {
         val chunkId = getChunkId(event.block.chunk) ?: setChunkId(event.block.chunk, UUID.randomUUID())
-        val chunkData = Factions.instance.readSession?.get(ChunkData::class.java, chunkId) ?: return
+        val session = Factions.instance.databaseConnector!!.sessionFactory!!.openSession()
 
-        if (chunkData.state == ChunkState.WILDERNESS) return
+        val chunkData = session.get(ChunkData::class.java, chunkId) ?: return
+        val factionMember = session.get(FactionPlayer::class.java, event.player.uniqueId) ?: return
 
-        val faction = chunkData.faction ?: return
-        val factionMember = Factions.instance.readSession?.get(FactionPlayer::class.java, event.player.uniqueId) ?: return
-        if (factionMember.faction != faction) {
-            event.isCancelled = true
-            return
-        }
+        if (PermissionUtil().isPermitted(factionMember, chunkData, Claim.BLOCK_BREAK)) return
+        event.isCancelled = true
+    }
 
-        //Fetch claims and check if there are any relevant claims
-        val claims = factionMember.role!!.claims
-        val relevantClaims = claims.filter { it.claim == Claim.BLOCK_BREAK }
-        if (relevantClaims.isEmpty()) {
-            event.isCancelled = true
-        }
+    @EventHandler
+    fun onBlockPlace(event: BlockPlaceEvent) {
+        val chunkId = getChunkId(event.block.chunk) ?: setChunkId(event.block.chunk, UUID.randomUUID())
+        val session = Factions.instance.databaseConnector!!.sessionFactory!!.openSession()
 
-        //Check if there is a specific claim for this chunk (Specific claim overrides general claim) If the specific claim is false, cancel the event
-        val specificClaim = relevantClaims.firstOrNull { it.chunkData == chunkData }
-        if (specificClaim != null && !specificClaim.value) {
-            event.isCancelled = true
-        }
+        val chunkData = session.get(ChunkData::class.java, chunkId) ?: return
+        val factionMember = session.get(FactionPlayer::class.java, event.player.uniqueId) ?: return
 
-        //If there is no specific claim, check if there is a general claim for the role. If the general claim is false, cancel the event
-        if (relevantClaims.isNotEmpty() && !relevantClaims.first().value) {
-            event.isCancelled = true
-        }
+        if (PermissionUtil().isPermitted(factionMember, chunkData, Claim.BLOCK_PLACE)) return
+        event.isCancelled = true
+    }
 
-        //If there is any relevant claim left, the user is allowed to break the block
+    @EventHandler
+    fun onInteract(event: PlayerInteractEvent) {
+        if (event.clickedBlock == null) return
+        val block = event.clickedBlock!!
+
+        val chunkId = getChunkId(block.chunk) ?: setChunkId(block.chunk, UUID.randomUUID())
+        val session = Factions.instance.databaseConnector!!.sessionFactory!!.openSession()
+
+        val chunkData = session.get(ChunkData::class.java, chunkId) ?: return
+        val factionMember = session.get(FactionPlayer::class.java, event.player.uniqueId) ?: return
+
+        if (PermissionUtil().isPermitted(factionMember, chunkData, Claim.INTERACT)) return
+        event.isCancelled = true
     }
 
     private fun getChunkId(chunk: Chunk): UUID? {

@@ -28,22 +28,26 @@ class ChunkCommand : CommandExecutor, TabCompleter {
                 true
             }
             "info" -> {
-                val session = Factions.instance.readSession
+                val session = Factions.instance.databaseConnector!!.sessionFactory!!.openSession()
                 val chunk = player.location.chunk
                 val chunkId = UUID.fromString(chunk.persistentDataContainer.get(NamespacedKey.fromString("chunk_id")!!, PersistentDataType.STRING))
                 val chunkData = session!!.get(ChunkData::class.java, chunkId)
                 if (chunkData == null) {
                     player.sendMessage(messages.failedToFetchChunkData())
+                    session.close()
                     return true
                 }
+
+                val faction = chunkData.faction
 
                 val message = """
                     §4[Faction] §cChunk Info:§f
                     §4[Faction] §cX/Z >> §a${chunk.x}/${chunk.z}
                     §4[Faction] §cID >> §a${chunkData.id}
-                    §4[Faction] §cClaim >> §c${if (chunkData.state == ChunkState.CLAIMED) chunkData.faction!!.name else "§aWildness"}
+                    §4[Faction] §cClaim >> §c${if (chunkData.state == ChunkState.CLAIMED) faction!!.name else "§aWildness"}
                 """.trimIndent()
                 player.sendMessage(message)
+                session.close()
                 true
             }
             "claim" -> {
@@ -52,26 +56,35 @@ class ChunkCommand : CommandExecutor, TabCompleter {
                 val factionPlayer = session.get(FactionPlayer::class.java, player.uniqueId)
                 if (factionPlayer?.faction == null) {
                     player.sendMessage(messages.playerNotInFaction())
+                    session.close()
                     return true
                 }
 
                 val chunk = player.location.chunk
                 val chunkId = UUID.fromString(chunk.persistentDataContainer.get(NamespacedKey.fromString("chunk_id")!!, PersistentDataType.STRING))
                 var chunkData = session.get(ChunkData::class.java, chunkId)
-                if (chunkData?.faction != null) {
+                if (chunkData == null) {
+                    chunkData = ChunkData()
+                    chunkData.id = chunkId
+                    chunkData.x = chunk.x
+                    chunkData.z = chunk.z
+                }
+
+                if (chunkData.state == ChunkState.CLAIMED) {
                     player.sendMessage(messages.chunkAlreadyClaimed())
+                    session.close()
                     return true
                 }
 
-                chunkData = ChunkData()
-                chunkData.id = chunkId
-                chunkData.faction = factionPlayer.faction
+                val faction = factionPlayer.faction!!
                 chunkData.state = ChunkState.CLAIMED
-                chunkData.x = chunk.x
-                chunkData.z = chunk.z
+                chunkData.faction = factionPlayer.faction!!
+                faction.chunks.add(chunkData)
 
+                session.persist(faction)
                 session.persist(chunkData)
                 transaction.commit()
+                session.close()
 
                 player.sendMessage(messages.chunkClaimedMessage(chunk))
                 true
@@ -82,6 +95,7 @@ class ChunkCommand : CommandExecutor, TabCompleter {
                 val factionPlayer = session.get(FactionPlayer::class.java, player.uniqueId) ?: return false
                 if (factionPlayer.faction == null) {
                     player.sendMessage(messages.playerNotInFaction())
+                    session.close()
                     return true
                 }
 
@@ -89,22 +103,26 @@ class ChunkCommand : CommandExecutor, TabCompleter {
                 val chunkId = UUIDUtil().parse(chunk.persistentDataContainer.get(NamespacedKey.fromString("chunk_id")!!, PersistentDataType.STRING))
                 if (chunkId == null) {
                     player.sendMessage(messages.chunkNotClaimed())
+                    session.close()
                     return true
                 }
 
                 val chunkData = session.get(ChunkData::class.java, chunkId)
                 if (chunkData == null) {
                     player.sendMessage(messages.failedToFetchChunkData())
+                    session.close()
                     return true
                 }
 
                 if (chunkData.faction != factionPlayer.faction) {
                     player.sendMessage(messages.chunkNotClaimedByPlayersFaction())
+                    session.close()
                     return true
                 }
 
                 if (factionPlayer.faction!!.leader != factionPlayer) {
                     player.sendMessage(messages.playerNotFactionLeader())
+                    session.close()
                     return true
                 }
 

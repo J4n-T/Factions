@@ -1,10 +1,11 @@
 package dev.tieseler.factions.commands
 
 import dev.tieseler.factions.Factions
-import dev.tieseler.factions.data.ChunkData
 import dev.tieseler.factions.data.Faction
 import dev.tieseler.factions.data.FactionPlayer
+import dev.tieseler.factions.data.Role
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.ComponentIteratorType
 import net.kyori.adventure.text.event.HoverEvent
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
@@ -88,7 +89,7 @@ class FactionCommand : CommandExecutor, TabCompleter {
                 transaction.commit()
                 session.close()
 
-                val announcement = Component.text("§4[Announcement] §c${player.name} §ahat sich dazu entschieden die Faction §c${faction.name} zu gründen")
+                val announcement = Component.text("§4[Announcement] §c${player.name} §ahat sich dazu entschieden die Faction §c${faction.name} §azu gründen")
                     .hoverEvent(HoverEvent.showText(Component.text("""
                         §fName: §c${faction.name!!}
                         §fBeschreibung: §c${faction.description!!}
@@ -332,12 +333,161 @@ class FactionCommand : CommandExecutor, TabCompleter {
                     }
                 }
             }
+            "roles" -> {
+                if (args.size < 2) {
+                    val faction = factionPlayer.faction
+                    if (faction == null) {
+                        player.sendMessage(messages.playerNotInFaction())
+                        session.close()
+                        return true
+                    }
+
+                    val roles = faction.roles
+                    var response: Component? = null
+                    var firstLoop = true
+                    roles.forEach { role ->
+                        if (firstLoop) {
+                            response = messages.role(role.name, role.acronym!!, role.weight, role.players.size)
+                            firstLoop = false
+                        } else response!!.appendNewline().append(messages.role(role.name, role.acronym!!, role.weight, role.players.size))
+                    }
+
+                    session.close()
+                    player.sendMessage(response!!)
+                    return true
+                }
+
+                when (args[1]) {
+                    "create" -> {
+                        if (args.size < 3) {
+                            player.sendMessage(messages.missingRoleName())
+                            session.close()
+                            return true
+                        }
+
+                        if (args.size < 4) {
+                            player.sendMessage(messages.missingRoleAcronym())
+                            session.close()
+                            return true
+                        }
+
+                        if (args.size < 5) {
+                            player.sendMessage(messages.missingRoleWeight())
+                            session.close()
+                            return true
+                        }
+
+                        val faction = factionPlayer.faction
+                        if (faction == null) {
+                            player.sendMessage(messages.playerNotInFaction())
+                            session.close()
+                            return true
+                        }
+
+                        val roleName = args[2]
+                        if (!validateRoleName(roleName)) {
+                            player.sendMessage(messages.invalidRoleName())
+                            session.close()
+                            return true
+                        }
+
+                        val roleAcronym = args[3]
+                        if (roleAcronym.length > 6) {
+                            player.sendMessage(messages.invalidRoleAcronym())
+                            session.close()
+                            return true
+                        }
+
+                        val roleWeight = args[4].toIntOrNull()
+                        if (roleWeight == null) {
+                            player.sendMessage(messages.invalidRoleWeight())
+                            session.close()
+                            return true
+                        }
+
+                        val role = Role()
+                        role.name = roleName
+                        role.acronym = roleAcronym
+                        role.weight = roleWeight
+                        role.faction = faction
+
+                        faction.roles.add(role)
+                        session.persist(role)
+                        session.persist(faction)
+                        transaction.commit()
+                        session.close()
+
+                        player.sendMessage(messages.roleCreated(roleName))
+                        return true
+                    }
+                    else -> {
+                        if (args.size < 3) {
+                            player.sendMessage(messages.missingSubCommand())
+                            session.close()
+                            return true
+                        }
+
+                        val faction = factionPlayer.faction
+                        if (faction == null) {
+                            player.sendMessage(messages.playerNotInFaction())
+                            session.close()
+                            return true
+                        }
+
+                        val roles = faction.roles
+                        val role = roles.firstOrNull { it.name == args[1] }
+                        if (role == null) {
+                            player.sendMessage(messages.roleNotFound(args[1]))
+                            session.close()
+                            return true
+                        }
+
+                        when (args[1]) {
+                            "add" -> {
+                                if (args.size < 4) {
+                                    player.sendMessage(messages.missingPlayerName())
+                                    session.close()
+                                    return true
+                                }
+
+                                val target = Bukkit.getPlayer(args[3])
+                                if (target == null) {
+                                    player.sendMessage(messages.failedToFetchPlayerData(Component.text(args[3])))
+                                    session.close()
+                                    return true
+                                }
+
+                                val targetFactionPlayer = session.get(FactionPlayer::class.java, target.uniqueId)
+                                if (targetFactionPlayer == null) {
+                                    player.sendMessage(messages.failedToFetchPlayerData(target.displayName()))
+                                    session.close()
+                                    return true
+                                }
+
+                                role.players.add(targetFactionPlayer)
+                                targetFactionPlayer.role = role
+                                session.persist(role)
+                                session.persist(targetFactionPlayer)
+                                transaction.commit()
+                                session.close()
+
+                                player.sendMessage(messages.playerAddedToRole(target.displayName(), role.name))
+                                return true
+                            }
+                        }
+                    }
+                }
+            }
         }
         session.close()
         return false
     }
 
     private fun validateFactionName(name: String): Boolean {
+        return name.matches(Regex("^[a-zA-Z0-9_]{3,16}$"))
+    }
+
+    private fun validateRoleName(name: String): Boolean {
         return name.matches(Regex("^[a-zA-Z0-9_]{3,16}$"))
     }
 
@@ -348,7 +498,7 @@ class FactionCommand : CommandExecutor, TabCompleter {
         args: Array<out String>
     ): MutableList<String> {
         // List of all subcommands
-        val subcommands = mutableListOf("create", "disband", "invite", "kick", "edit", "motd")
+        val subcommands = mutableListOf("create", "disband", "invite", "kick", "edit", "motd", "roles")
         var completions = subcommands
 
         // If there are no arguments, suggest all subcommands
@@ -377,7 +527,37 @@ class FactionCommand : CommandExecutor, TabCompleter {
                     } else return mutableListOf()
                 }
                 "edit" -> {
-                    completions = mutableListOf("name", "displayname", "acronym", "description", "motd")
+                    if (args.size == 2) {
+                        completions = mutableListOf("name", "displayname", "acronym", "description", "motd")
+                    } else return mutableListOf()
+                }
+                "roles" -> {
+                    if (args.size == 2) {
+                        completions = mutableListOf("create")
+                    }
+
+                    if (args.size == 3) {
+                        val session = Factions.instance.databaseConnector!!.sessionFactory!!.openSession()
+                        val factionPlayer = session.get(FactionPlayer::class.java, (sender as Player).uniqueId)
+                        completions = mutableListOf()
+                        factionPlayer.faction!!.roles.forEach { role ->
+                            completions.add(role.name)
+                        }
+                        session.close()
+                    }
+
+                    if (args.size == 4) {
+                        completions = mutableListOf("add")
+                    }
+
+                    if (args.size == 5) {
+                        completions = mutableListOf()
+                        Bukkit.getOnlinePlayers().forEach { player ->
+                            completions.add(player.name)
+                        }
+                    }
+
+                    return mutableListOf()
                 }
                 else -> return mutableListOf()
             }

@@ -14,7 +14,10 @@ class Role {
     @Id
     var id: UUID = UUID.randomUUID()
 
-    var name: String = "default"
+    var name: String = ""
+    var acronym: String? = null
+
+    var weight: Int = 0
 
     @OneToMany(mappedBy = "role")
     var players: MutableList<FactionPlayer> = mutableListOf()

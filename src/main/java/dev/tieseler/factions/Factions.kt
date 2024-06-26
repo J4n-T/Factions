@@ -28,7 +28,7 @@ class Factions : JavaPlugin() {
     var readSession: Session? = null
     val chunks = ConcurrentHashMap<UUID, ChunkData>()
 
-    //TODO: Message of the day
+    //TODO: Rolesystem
 
     override fun onEnable() {
         instance = this
@@ -70,7 +70,6 @@ class Factions : JavaPlugin() {
                     pigs.remove(id)
                     return@forEach
                 }
-                //TODO: Check if the pig is flying by half a block -.-
                 val scheduler = fetchedEntity.scheduler
                 scheduler.run(instance, {
                     pig.setRotation(pig.passengers.first().yaw, pig.pitch)

@@ -15,6 +15,20 @@ interface Messages {
     fun missingFactionDisplayName(): Component
     fun missingFactionAcronym(): Component
     fun missingFactionDescription(): Component
+    fun missingRoleName(): Component
+    fun missingRoleAcronym(): Component
+    fun missingRoleWeight(): Component
+    fun missingSubCommand(): Component
+    fun missingPlayerName(): Component
+
+    fun invalidSubCommand(): Component
+    fun invalidRoleName(): Component
+    fun invalidRoleAcronym(): Component
+    fun invalidRoleWeight(): Component
+
+    fun role(name: String, acronym: String, weight: Int, members: Int): Component
+    fun roleCreated(roleName: String): Component
+    fun roleNotFound(roleName: String): Component
 
     fun alreadyInFaction(): Component
     fun selectFactionMode(): Component
@@ -34,6 +48,7 @@ interface Messages {
 
     fun playerNotFactionLeader(): Component
     fun playerNotInFaction(): Component
+    fun playerAddedToRole(playerName: Component, roleName: String): Component
 
     fun chunkClaimedMessage(chunk: Chunk): Component
     fun chunkAlreadyClaimed(): Component

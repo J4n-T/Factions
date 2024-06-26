@@ -56,12 +56,64 @@ class German : Messages {
         return prefix.append(text(" Bitte gib eine Beschreibung für deine Faction ein").color(RED))
     }
 
+    override fun missingRoleName(): Component {
+        return prefix.append(text(" Bitte gib einen Rollennamen an").color(RED))
+    }
+
+    override fun missingRoleAcronym(): Component {
+        return prefix.append(text(" Bitte gib ein Kürzel für die Rolle an").color(RED))
+    }
+
+    override fun missingRoleWeight(): Component {
+        return prefix.append(text(" Bitte gib ein Gewicht für die Rolle an").color(RED))
+    }
+
+    override fun missingSubCommand(): Component {
+        return prefix.append(text(" Bitte gib einen Subcommand an").color(RED))
+    }
+
+    override fun missingPlayerName(): Component {
+        return prefix.append(text(" Bitte gib den Namen eines Spielers an").color(RED))
+    }
+
+    override fun invalidSubCommand(): Component {
+        return prefix.append(text(" Der angegebene Subcommand ist ungültig").color(RED))
+    }
+
+    override fun invalidRoleName(): Component {
+        return prefix.append(text(" Der angegebene Rollenname ist ungültig").color(RED))
+    }
+
+    override fun invalidRoleAcronym(): Component {
+        return prefix.append(text(" Das angegebene Kürzel ist ungültig").color(RED))
+    }
+
+    override fun invalidRoleWeight(): Component {
+        return prefix.append(text(" Das angegebene Gewicht ist ungültig").color(RED))
+    }
+
+    override fun role(name: String, acronym: String, weight: Int, members: Int): Component {
+        return prefix.append(text(" $name").color(GOLD).append(text(" ($acronym)").color(GRAY).append(text(" - Gewicht: $weight").color(GRAY).append(text(" - Mitglieder: $members").color(GRAY)))))
+    }
+
+    override fun roleCreated(roleName: String): Component {
+        return prefix.append(text(" Die Rolle ").color(GREEN).append(text(roleName).color(GOLD).append(text(" wurde erstellt").color(GREEN))))
+    }
+
+    override fun roleNotFound(roleName: String): Component {
+        return prefix.append(text(" Die Rolle ").color(RED).append(text(roleName).color(GOLD).append(text(" konnte nicht gefunden werden").color(RED))))
+    }
+
     override fun factionAlreadyExists(factionName: String): Component {
         return prefix.append(text(" Die Faction ").color(RED).append(text(factionName).color(GREEN).append(text(" existiert bereits").color(RED))))
     }
 
     override fun playerNotInFaction(): Component {
         return prefix.append(text(" Du bist in keiner Factio").color(RED))
+    }
+
+    override fun playerAddedToRole(playerName: Component, roleName: String): Component {
+        return prefix.append(text(" Der Spieler ").color(GREEN).append(playerName).append(text(" wurde der Rolle ").color(GREEN).append(text(roleName).color(GOLD).append(text(" hinzugefügt").color(GREEN)))))
     }
 
     override fun chunkClaimedMessage(chunk: Chunk): Component {

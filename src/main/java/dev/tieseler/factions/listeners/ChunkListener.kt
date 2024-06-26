@@ -2,6 +2,7 @@ package dev.tieseler.factions.listeners
 
 import dev.tieseler.factions.Factions
 import dev.tieseler.factions.data.ChunkData
+import dev.tieseler.factions.data.ChunkState
 import dev.tieseler.factions.data.Claim
 import dev.tieseler.factions.data.FactionPlayer
 import dev.tieseler.factions.util.PermissionUtil
@@ -11,13 +12,22 @@ import org.bukkit.NamespacedKey
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockBreakEvent
+import org.bukkit.event.block.BlockExplodeEvent
 import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.world.ChunkLoadEvent
 import org.bukkit.event.world.ChunkPopulateEvent
 import org.bukkit.event.world.ChunkUnloadEvent
+import org.bukkit.metadata.FixedMetadataValue
 import org.bukkit.persistence.PersistentDataType
 import java.util.*
+
+import org.bukkit.Material.*
+import org.bukkit.block.data.type.Bed
+import org.bukkit.entity.Player
+import org.bukkit.event.entity.EntityCombustEvent
+import org.bukkit.event.entity.EntityExplodeEvent
+import org.bukkit.event.entity.EntityTargetLivingEntityEvent
 
 class ChunkListener : Listener {
 
@@ -76,8 +86,16 @@ class ChunkListener : Listener {
         val chunkData = session.get(ChunkData::class.java, chunkId) ?: return
         val factionMember = session.get(FactionPlayer::class.java, event.player.uniqueId) ?: return
 
-        if (PermissionUtil().isPermitted(factionMember, chunkData, Claim.BLOCK_PLACE)) return
-        event.isCancelled = true
+        if (!PermissionUtil().isPermitted(factionMember, chunkData, Claim.BLOCK_PLACE)) {
+            event.isCancelled = true
+            return
+        }
+
+        val block = event.block
+        val explosiveBlocks = listOf(TNT, END_CRYSTAL, RESPAWN_ANCHOR, TNT_MINECART)
+        if (explosiveBlocks.contains(block.blockData.material) || block.blockData is Bed) {
+            block.setMetadata("invoker", FixedMetadataValue(Factions.instance, "${event.player.uniqueId}"))
+        }
     }
 
     @EventHandler
@@ -93,6 +111,53 @@ class ChunkListener : Listener {
 
         if (PermissionUtil().isPermitted(factionMember, chunkData, Claim.INTERACT)) return
         event.isCancelled = true
+    }
+
+    @EventHandler
+    fun onBlockExplosion(event: BlockExplodeEvent) {
+        val session = Factions.instance.databaseConnector!!.sessionFactory!!.openSession()
+        val invoker = UUIDUtil().parse(event.block.getMetadata("invoker")[0].asString()) ?: return
+
+        val factionMember = session.get(FactionPlayer::class.java, invoker)
+        if (factionMember?.faction == null) {
+            event.blockList().removeIf { block ->
+                val blockChunkId = getChunkId(block.chunk) ?: setChunkId(block.chunk, UUID.randomUUID())
+                val blockChunkData = session.get(ChunkData::class.java, blockChunkId) ?: return@removeIf true
+                return@removeIf blockChunkData.state == ChunkState.WILDERNESS
+            }
+            return
+        }
+
+        val invokersFaction = factionMember.faction!!
+        event.blockList().removeIf { block ->
+            val blockChunkId = getChunkId(block.chunk) ?: setChunkId(block.chunk, UUID.randomUUID())
+            val blockChunkData = session.get(ChunkData::class.java, blockChunkId) ?: return@removeIf true
+            return@removeIf blockChunkData.faction != invokersFaction
+        }
+    }
+
+    @EventHandler
+    fun onEntityPrimeEvent(event: EntityExplodeEvent) {
+        val invoker = UUIDUtil().parse(event.entity.persistentDataContainer.get(NamespacedKey.fromString("invoker")!!, PersistentDataType.STRING))
+        if (invoker == null) return
+
+        val session = Factions.instance.databaseConnector!!.sessionFactory!!.openSession()
+        val factionMember = session.get(FactionPlayer::class.java, invoker)
+        if (factionMember?.faction == null) {
+            event.isCancelled = true
+            return
+        }
+
+        val invokersFaction = factionMember.faction!!
+        val blockChunkId = getChunkId(event.entity.location.chunk) ?: setChunkId(event.entity.location.chunk, UUID.randomUUID())
+        val blockChunkData = session.get(ChunkData::class.java, blockChunkId) ?: return
+        if (blockChunkData.faction != invokersFaction) event.isCancelled = true
+    }
+
+    @EventHandler
+    fun onEntityTrigger(event: EntityTargetLivingEntityEvent) {
+        if (event.target == null || event.target !is Player) return
+        event.entity.persistentDataContainer.set(NamespacedKey.fromString("invoker")!!, PersistentDataType.STRING, event.target!!.uniqueId.toString())
     }
 
     private fun getChunkId(chunk: Chunk): UUID? {

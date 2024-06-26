@@ -9,7 +9,8 @@ class RespawnAnchorListener : Listener {
 
     @EventHandler
     fun onRespawnAnchorExplode(event: EntityDamageByBlockEvent) {
-        if (event.damagerBlockState!!.type != Material.RESPAWN_ANCHOR) return
+        val block = event.damagerBlockState?.type ?: event.damager?.type
+        if (block != Material.RESPAWN_ANCHOR) return
         event.isCancelled = true
     }
 

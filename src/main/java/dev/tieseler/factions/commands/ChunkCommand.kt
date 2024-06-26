@@ -133,6 +133,22 @@ class ChunkCommand : CommandExecutor, TabCompleter {
                 player.sendMessage(messages.chunkUnclaimed())
                 true
             }
+            "bypass" -> {
+                if (player.hasPermission("factions.bypass")) {
+                    if (player.persistentDataContainer.has(NamespacedKey.fromString("bypass")!!, PersistentDataType.BYTE)) {
+                        player.sendMessage(messages.bypassModeDisabled())
+                        player.persistentDataContainer.remove(NamespacedKey.fromString("bypass")!!)
+                        return true
+                    } else {
+                        player.sendMessage(messages.bypassModeEnabled())
+                        player.persistentDataContainer.set(NamespacedKey.fromString("bypass")!!, PersistentDataType.BYTE, 1)
+                        return true
+                    }
+                } else {
+                    player.sendMessage(messages.notPermitted())
+                    return true
+                }
+            }
             else -> {
                 //TODO: Implement
                 false
@@ -147,7 +163,7 @@ class ChunkCommand : CommandExecutor, TabCompleter {
         args: Array<out String>
     ): MutableList<String> {
         // List of all subcommands
-        val subcommands = mutableListOf("id", "info", "claim", "unclaim")
+        val subcommands = mutableListOf("id", "info", "claim", "unclaim", "bypass")
 
         // If there are no arguments, suggest all subcommands
         if (args.isEmpty()) {

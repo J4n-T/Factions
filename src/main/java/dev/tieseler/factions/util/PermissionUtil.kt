@@ -1,12 +1,17 @@
 package dev.tieseler.factions.util
 
 import dev.tieseler.factions.data.*
+import org.bukkit.Bukkit
+import org.bukkit.NamespacedKey
+import org.bukkit.persistence.PersistentDataType
 
 class PermissionUtil {
 
     fun isPermitted(player: FactionPlayer?, chunk: ChunkData?, claim: Claim): Boolean {
         if (player == null) return false
         if (chunk == null) return false
+
+        if (Bukkit.getPlayer(player.id!!)!!.persistentDataContainer.has(NamespacedKey.fromString("bypass")!!, PersistentDataType.BYTE)) return true
 
         //Chunk is unclaimed so everyone can do whatever they want
         if (chunk.state == ChunkState.WILDERNESS) return true

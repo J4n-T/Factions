@@ -9,7 +9,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 @CommandAlias("factions|f")
-class FactionDisbandCommand : FactionsBaseCommand() {
+class FactionsDisbandCommand : FactionsBaseCommand() {
 
     @Subcommand("disband")
     fun onDisband(sender: CommandSender) {

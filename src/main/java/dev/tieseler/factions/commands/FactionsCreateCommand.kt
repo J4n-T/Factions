@@ -12,7 +12,7 @@ import org.bukkit.entity.Player
 import java.util.*
 
 @CommandAlias("factions|f")
-class FactionCreateCommand : FactionsBaseCommand() {
+class FactionsCreateCommand : FactionsBaseCommand() {
 
     @Subcommand("create")
     fun onCreate(sender: CommandSender, vararg args: String) {

@@ -1,18 +1,15 @@
 package dev.tieseler.factions.commands
 
 import dev.tieseler.factions.Factions
-import dev.tieseler.factions.data.Faction
 import dev.tieseler.factions.data.FactionPlayer
 import dev.tieseler.factions.data.Role
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.event.HoverEvent
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.command.TabCompleter
 import org.bukkit.entity.Player
-import java.util.*
 
 class FactionCommand : CommandExecutor, TabCompleter {
 
@@ -33,20 +30,6 @@ class FactionCommand : CommandExecutor, TabCompleter {
         }
 
         when (args[0]) {
-            "motd" -> {
-                val faction = factionPlayer.faction
-                if (faction == null) {
-                    player.sendMessage(messages.playerNotInFaction())
-                    session.close()
-                    return true
-                }
-
-                if (args.size < 2) {
-                    player.sendMessage(messages.missingMotd())
-                    session.close()
-                    return true
-                }
-            }
             "edit" -> {
                 if (args.size < 2) {
                     player.sendMessage(Component.text("§4[Faction] §cDu musst einen Unterbefehl angeben!"))

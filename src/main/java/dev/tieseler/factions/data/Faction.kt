@@ -1,6 +1,5 @@
 package dev.tieseler.factions.data
 
-import io.papermc.paper.text.PaperComponents
 import jakarta.persistence.*
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
@@ -73,5 +72,20 @@ class Faction {
         this.acronym = PlainTextComponentSerializer.plainText().serialize(acronym)
     }
 
+    fun description(): Component {
+        return PlainTextComponentSerializer.plainText().deserialize(this.description!!)
+    }
+
+    fun description(description: Component) {
+        this.description = PlainTextComponentSerializer.plainText().serialize(description)
+    }
+
+    fun motd(): Component {
+        return PlainTextComponentSerializer.plainText().deserialize(this.motd!!)
+    }
+
+    fun motd(motd: Component) {
+        this.motd = PlainTextComponentSerializer.plainText().serialize(motd)
+    }
 
 }

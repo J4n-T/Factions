@@ -205,8 +205,8 @@ class German : Messages {
         return prefix.append(text(" Du musst erst deine aktuelle Faction verlassen, um einer anderen beitreten zu können").color(RED))
     }
 
-    override fun motd(factionName: String, motd: String): Component {
-        return text("§7[$factionName§7] Nachricht des Tages: ").color(GRAY).append(text(motd).color(GREEN))
+    override fun motd(factionName: Component, motd: Component): Component {
+        return text("[").color(DARK_GRAY).append(factionName).append(text("]").color(DARK_GRAY).append(text(" Nachricht des Tages: ").append(motd)))
     }
 
     override fun noMotd(): Component {
@@ -219,6 +219,10 @@ class German : Messages {
 
     override fun motdChanged(): Component {
         return prefix.append(text(" Die Nachricht des Tages wurde geändert").color(GREEN))
+    }
+
+    override fun motdTooLong(): Component {
+        return prefix.append(text(" Die Nachricht des Tages ist zu lang").color(RED))
     }
 
     override fun notPermitted(): Component {

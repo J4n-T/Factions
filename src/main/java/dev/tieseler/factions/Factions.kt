@@ -71,6 +71,7 @@ class Factions : JavaPlugin() {
         commandManager.registerCommand(FactionsInviteCommand())
         commandManager.registerCommand(FactionsKickCommand())
         commandManager.registerCommand(FactionsLeaveCommand())
+        commandManager.registerCommand(FactionsMotdCommand())
         commandManager.registerCommand(PepoSitCommand())
 
         commandManager.commandCompletions.registerCompletion("factionsInvites") { context ->

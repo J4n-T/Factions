@@ -79,10 +79,11 @@ interface Messages {
     fun inviteCommandPlayerNameOrSubCommandRequired(): Component
     fun inviteFailedAlreadyInFaction(): Component
 
-    fun motd(factionName: String, motd: String): Component
+    fun motd(factionName: Component, motd: Component): Component
     fun noMotd(): Component
     fun missingMotd(): Component
     fun motdChanged(): Component
+    fun motdTooLong(): Component
 
     fun notPermitted(): Component
 

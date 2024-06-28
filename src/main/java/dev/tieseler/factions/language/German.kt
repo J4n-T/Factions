@@ -260,6 +260,14 @@ class German : Messages {
         return prefix.append(text(" Bitte gib den Namen der Faction an").color(RED))
     }
 
+    override fun factionLeaderCannotLeave(): Component {
+        return prefix.append(text(" Der Anführer der Faction diese verlassen. Nutz /faction disband").color(RED))
+    }
+
+    override fun factionLeft(): Component {
+        return prefix.append(text(" Du hast die Faction verlassen").color(GREEN))
+    }
+
     override fun targetNotSameFaction(targetName: Component): Component {
         return prefix.append(text(" Der Spieler ").color(RED).append(targetName).append(text(" ist nicht in deiner Faction").color(RED)))
     }

@@ -49,6 +49,8 @@ interface Messages {
     fun factionAcronymToLong(): Component
     fun factionAcronymChanged(): Component
     fun factionNameMissing(): Component
+    fun factionLeaderCannotLeave(): Component
+    fun factionLeft(): Component
 
     fun targetNotSameFaction(targetName: Component): Component
 

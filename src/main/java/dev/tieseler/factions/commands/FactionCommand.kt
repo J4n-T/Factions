@@ -5,9 +5,7 @@ import dev.tieseler.factions.data.Faction
 import dev.tieseler.factions.data.FactionPlayer
 import dev.tieseler.factions.data.Role
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.ComponentIteratorType
 import net.kyori.adventure.text.event.HoverEvent
-import net.kyori.adventure.text.serializer.ComponentSerializer
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
@@ -198,6 +196,30 @@ class FactionCommand : CommandExecutor, TabCompleter {
                 player.sendMessage(Component.text("§4[Faction] §aDer Spieler §c${target.name} §awurde aus deiner Faction gekickt!"))
                 target.sendMessage(Component.text("§4[Faction] §cDu wurdest aus der Faction §a${faction.name} §cgekickt!"))
                 Bukkit.getServer().broadcast(Component.text("§4[Announcement] §cDer Spieler §4${target.name} §cwurde aus der Faction §4${faction.name} §cgekickt!"))
+                return true
+            }
+            "leave" -> {
+                val faction = factionPlayer.faction
+                if (faction == null) {
+                    player.sendMessage(messages.playerNotInFaction())
+                    session.close()
+                    return true
+                }
+
+                if (faction.leader == factionPlayer) {
+                    player.sendMessage(messages.factionLeaderCannotLeave())
+                    session.close()
+                    return true
+                }
+
+                faction.members.remove(factionPlayer)
+                factionPlayer.role = null
+                factionPlayer.faction = null
+                session.persist(faction)
+                session.persist(factionPlayer)
+                transaction.commit()
+                player.sendMessage(messages.factionLeft())
+                session.close()
                 return true
             }
             "motd" -> {

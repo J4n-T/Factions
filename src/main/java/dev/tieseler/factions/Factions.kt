@@ -12,7 +12,6 @@ import dev.tieseler.factions.papi.FactionsExpansion
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import org.bukkit.Bukkit
-import org.bukkit.entity.EntityType
 import org.bukkit.entity.Pig
 import org.bukkit.plugin.java.JavaPlugin
 import org.hibernate.Session
@@ -30,6 +29,7 @@ class Factions : JavaPlugin() {
     val chunks = ConcurrentHashMap<UUID, ChunkData>()
 
     //TODO: Rolesystem
+    //TODO: Check Tnt explosion in claims
 
     override fun onEnable() {
         instance = this

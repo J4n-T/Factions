@@ -94,6 +94,7 @@ class FactionCreateCommand : FactionsBaseCommand() {
         faction.id = UUID.randomUUID()
         faction.name = name
         faction.displayName = displayName
+        faction.acronym = acronym
         faction.neutral = neutral
         faction.description = description
         faction.createdAt = System.currentTimeMillis()

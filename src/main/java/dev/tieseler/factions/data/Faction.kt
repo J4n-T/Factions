@@ -1,6 +1,9 @@
 package dev.tieseler.factions.data
 
+import io.papermc.paper.text.PaperComponents
 import jakarta.persistence.*
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import java.util.*
 
 @Entity
@@ -54,7 +57,21 @@ class Faction {
 
     var neutral: Boolean = false
 
-    @Transient
-    var state: FactionState = FactionState.NAME_REQUIRED
+    fun name(): Component {
+        return if (this.displayName == null) Component.text(this.name!!) else PlainTextComponentSerializer.plainText().deserialize(this.displayName!!)
+    }
+
+    fun displayName(name: Component) {
+        this.displayName = PlainTextComponentSerializer.plainText().serialize(name)
+    }
+
+    fun acronym(): Component {
+        return PlainTextComponentSerializer.plainText().deserialize(this.acronym!!)
+    }
+
+    fun acronym(acronym: Component) {
+        this.acronym = PlainTextComponentSerializer.plainText().serialize(acronym)
+    }
+
 
 }

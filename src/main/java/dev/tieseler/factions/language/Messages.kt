@@ -70,13 +70,14 @@ interface Messages {
 
     fun invited(displayName: Component): Component
     fun inviteNotFound(): Component
-    fun joinedFaction(factionName: String): Component
-    fun inviteDeclined(factionName: String): Component
+    fun joinedFaction(factionName: Component): Component
+    fun inviteDeclined(factionName: Component): Component
     fun inviteFailedPlayerNotFound(displayName: String): Component
     fun inviteFailedPlayerAlreadyInvited(displayName: Component): Component
     fun inviteFailedCannotInviteYourself(): Component
     fun inviteFailedPlayerAlreadyInYourFaction(displayName: Component): Component
     fun inviteCommandPlayerNameOrSubCommandRequired(): Component
+    fun inviteFailedAlreadyInFaction(): Component
 
     fun motd(factionName: String, motd: String): Component
     fun noMotd(): Component

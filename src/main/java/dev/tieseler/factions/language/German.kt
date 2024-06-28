@@ -173,12 +173,12 @@ class German : Messages {
         return prefix.append(text(" Die Einladung konnte nicht gefunden werden").color(RED))
     }
 
-    override fun joinedFaction(factionName: String): Component {
-        return prefix.append(text(" Du bist der Faction ").color(GREEN).append(text(factionName).color(GOLD).append(text(" beigetreten").color(GREEN))))
+    override fun joinedFaction(factionName: Component): Component {
+        return prefix.append(text(" Du bist der Faction ").color(GREEN).append(factionName.append(text(" beigetreten").color(GREEN))))
     }
 
-    override fun inviteDeclined(factionName: String): Component {
-        return prefix.append(text(" Du hast die Einladung von ").color(RED).append(text(factionName).color(GOLD).append(text(" abgelehnt").color(RED))))
+    override fun inviteDeclined(factionName: Component): Component {
+        return prefix.append(text(" Du hast die Einladung von ").color(RED).append(factionName.append(text(" abgelehnt").color(RED))))
     }
 
     override fun inviteFailedPlayerNotFound(displayName: String): Component {
@@ -199,6 +199,10 @@ class German : Messages {
 
     override fun inviteCommandPlayerNameOrSubCommandRequired(): Component {
         return prefix.append(text(" Bitte gib den Namen eines Spielers oder einen Subcommand an").color(RED))
+    }
+
+    override fun inviteFailedAlreadyInFaction(): Component {
+        return prefix.append(text(" Du musst erst deine aktuelle Faction verlassen, um einer anderen beitreten zu können").color(RED))
     }
 
     override fun motd(factionName: String, motd: String): Component {

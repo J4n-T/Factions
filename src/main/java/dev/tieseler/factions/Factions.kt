@@ -3,6 +3,7 @@ package dev.tieseler.factions
 import co.aikar.commands.PaperCommandManager
 import dev.tieseler.factions.commands.*
 import dev.tieseler.factions.data.ChunkData
+import dev.tieseler.factions.data.FactionInvite
 import dev.tieseler.factions.language.German
 import dev.tieseler.factions.language.Messages
 import dev.tieseler.factions.listeners.*
@@ -64,6 +65,11 @@ class Factions : JavaPlugin() {
 
         val commandManager = PaperCommandManager(this)
         commandManager.registerCommand(FactionsChunkCommand())
+        commandManager.registerCommand(FactionsInviteCommand())
+
+        commandManager.commandCompletions.registerCompletion("factionsInvites") { context ->
+            databaseConnector?.sessionFactory?.openSession()?.createQuery("FROM FactionInvite WHERE target = :target_id", FactionInvite::class.java)?.setParameter("target_id", context.player.uniqueId)?.list()?.map { it.faction!!.name } ?: mutableListOf()
+        }
 
         Bukkit.getGlobalRegionScheduler().runAtFixedRate(this, {
             pigs.forEach(100) { id, pig ->

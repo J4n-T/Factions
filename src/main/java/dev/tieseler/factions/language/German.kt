@@ -6,10 +6,15 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.Component.*
 import net.kyori.adventure.text.format.NamedTextColor.*
 import org.bukkit.Chunk
+import java.util.*
 
 class German : Messages {
 
     private val prefix = Factions.instance.prefix
+
+    override fun senderNotPlayer(): Component {
+        return prefix.append(text(" Du musst ein Spieler sein, um diesen Befehl auszuführen").color(RED))
+    }
 
     override fun failedToFetchPlayerData(): Component {
         return prefix.append(text(" Dein Profil konnte nicht abgerufen werden").color(RED))
@@ -154,6 +159,10 @@ class German : Messages {
 
     override fun chunkUnclaimed(): Component {
         return prefix.append(text(" Der Chunk wurde unclaimed").color(GREEN))
+    }
+
+    override fun chunkInfo(x: Int, z: Int, id: UUID, state: Component): Component {
+        return space().append(prefix.append(text(" Chunk Info:").color(GREEN).appendNewline().append(prefix.append(text(" X: ").color(GREEN).append(text("$x").color(RED).append(text(" Z: ").color(GREEN).append(text("$z").color(RED).appendNewline().append(prefix.append(text(" ID: ").color(GREEN).append(text("$id").color(RED).appendNewline().append(prefix.append(text(" Claim: ").color(GREEN).append(state)))))))))))))
     }
 
     override fun invited(displayName: Component): Component {

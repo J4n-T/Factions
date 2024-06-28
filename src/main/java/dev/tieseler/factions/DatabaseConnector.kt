@@ -20,9 +20,6 @@ class DatabaseConnector(
     var sessionFactory: SessionFactory? = null
 
     fun connect() {
-        // DO NOT REMOVE
-        Class.forName("org.postgresql.Driver");
-
         val configuration = Configuration()
         val properties = Properties()
         properties[JAKARTA_JDBC_URL] = "jdbc:postgresql://$host:$port/$database"

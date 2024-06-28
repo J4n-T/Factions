@@ -23,4 +23,8 @@ class ChunkData {
 
     @ManyToOne
     var roleClaims: RoleClaims? = null
+
+    fun isClaimed(): Boolean {
+        return state != ChunkState.WILDERNESS || faction != null
+    }
 }

@@ -2,8 +2,11 @@ package dev.tieseler.factions.language
 
 import net.kyori.adventure.text.Component
 import org.bukkit.Chunk
+import java.util.UUID
 
 interface Messages {
+
+    fun senderNotPlayer(): Component
 
     fun failedToFetchPlayerData(): Component
     fun failedToFetchPlayerData(playerName: Component): Component
@@ -63,6 +66,7 @@ interface Messages {
     fun chunkNotClaimed(): Component
     fun chunkNotClaimedByPlayersFaction(): Component
     fun chunkUnclaimed(): Component
+    fun chunkInfo(x: Int, z: Int, id: UUID, state: Component): Component
 
     fun invited(displayName: Component): Component
     fun inviteNotFound(): Component

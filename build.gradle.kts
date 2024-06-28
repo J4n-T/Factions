@@ -45,7 +45,7 @@ bukkit {
     name = "Factions"
     author = "mi3zekater"
     main = "dev.tieseler.factions.Factions"
-    apiVersion = "1.20.4"
+    apiVersion = "1.20"
     foliaSupported = true
     load = BukkitPluginDescription.PluginLoadOrder.STARTUP
 
@@ -70,7 +70,8 @@ tasks.withType<JavaCompile> {
 }
 
 tasks.shadowJar {
-    minimize()
+    dependsOn(tasks.compileJava)
+    dependsOn(tasks.compileKotlin)
     archiveFileName.set("${project.name}-${project.version}.jar")
     relocate("co.aikar.commands", "dev.tieseler.factions.shaded.acf")
 }

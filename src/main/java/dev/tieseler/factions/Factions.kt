@@ -1,9 +1,7 @@
 package dev.tieseler.factions
 
-import dev.tieseler.factions.commands.ChunkCommand
-import dev.tieseler.factions.commands.FactionCommand
-import dev.tieseler.factions.commands.InviteCommand
-import dev.tieseler.factions.commands.PepoSitCommand
+import co.aikar.commands.PaperCommandManager
+import dev.tieseler.factions.commands.*
 import dev.tieseler.factions.data.ChunkData
 import dev.tieseler.factions.language.German
 import dev.tieseler.factions.language.Messages
@@ -60,10 +58,12 @@ class Factions : JavaPlugin() {
         if (config.getBoolean("pvp.tnt_minecart")) server.pluginManager.registerEvents(TntMinecartListener(), this)
         if (config.getBoolean("pvp.respawn_anchor")) server.pluginManager.registerEvents(RespawnAnchorListener(), this)
 
-        getCommand("chunk")?.setExecutor(ChunkCommand())
-        getCommand("peposit")?.setExecutor(PepoSitCommand())
+        /*getCommand("peposit")?.setExecutor(PepoSitCommand())
         getCommand("faction")?.setExecutor(FactionCommand())
-        getCommand("invite")?.setExecutor(InviteCommand())
+        getCommand("invite")?.setExecutor(InviteCommand())*/
+
+        val commandManager = PaperCommandManager(this)
+        commandManager.registerCommand(FactionsChunkCommand())
 
         Bukkit.getGlobalRegionScheduler().runAtFixedRate(this, {
             pigs.forEach(100) { id, pig ->

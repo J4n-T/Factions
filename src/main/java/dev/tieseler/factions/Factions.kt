@@ -4,6 +4,7 @@ import co.aikar.commands.PaperCommandManager
 import dev.tieseler.factions.commands.*
 import dev.tieseler.factions.data.ChunkData
 import dev.tieseler.factions.data.FactionInvite
+import dev.tieseler.factions.data.FactionPlayer
 import dev.tieseler.factions.language.German
 import dev.tieseler.factions.language.Messages
 import dev.tieseler.factions.listeners.*
@@ -65,11 +66,26 @@ class Factions : JavaPlugin() {
 
         val commandManager = PaperCommandManager(this)
         commandManager.registerCommand(FactionsChunkCommand())
+        commandManager.registerCommand(FactionsCreateCommand())
+        commandManager.registerCommand(FactionsDisbandCommand())
         commandManager.registerCommand(FactionsInviteCommand())
+        commandManager.registerCommand(FactionsKickCommand())
         commandManager.registerCommand(PepoSitCommand())
 
         commandManager.commandCompletions.registerCompletion("factionsInvites") { context ->
             databaseConnector?.sessionFactory?.openSession()?.createQuery("FROM FactionInvite WHERE target = :target_id", FactionInvite::class.java)?.setParameter("target_id", context.player.uniqueId)?.list()?.map { it.faction!!.name } ?: mutableListOf()
+        }
+        commandManager.commandCompletions.registerCompletion("factionsMembers") { context ->
+            val session = databaseConnector?.sessionFactory?.openSession() ?: return@registerCompletion mutableListOf()
+            val factionPlayer = session.get(FactionPlayer::class.java, context.player.uniqueId)
+            if (factionPlayer == null) {
+                session.close()
+                return@registerCompletion mutableListOf()
+            }
+
+            val members = factionPlayer.faction?.members?.map { Bukkit.getOfflinePlayer(it.id!!).name } ?: mutableListOf()
+            session.close()
+            return@registerCompletion members
         }
 
         Bukkit.getGlobalRegionScheduler().runAtFixedRate(this, {

@@ -85,7 +85,7 @@ class FactionsInviteCommand : FactionsBaseCommand() {
 
     @CommandAlias("fia")
     @Subcommand("accept|a")
-    @CommandCompletion("factionsInvites")
+    @CommandCompletion("@factionsInvites")
     fun onAccept(sender: CommandSender, vararg args: String) {
         if (args.isEmpty()) {
             sender.sendMessage(messages.missingFactionName())
@@ -122,7 +122,7 @@ class FactionsInviteCommand : FactionsBaseCommand() {
 
     @CommandAlias("fid")
     @Subcommand("decline|d")
-    @CommandCompletion("factionsInvites")
+    @CommandCompletion("@factionsInvites")
     fun onDecline(sender: CommandSender, vararg args: String) {
         if (args.isEmpty()) {
             sender.sendMessage(messages.missingFactionName())

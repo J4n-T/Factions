@@ -66,6 +66,7 @@ class Factions : JavaPlugin() {
         val commandManager = PaperCommandManager(this)
         commandManager.registerCommand(FactionsChunkCommand())
         commandManager.registerCommand(FactionsInviteCommand())
+        commandManager.registerCommand(PepoSitCommand())
 
         commandManager.commandCompletions.registerCompletion("factionsInvites") { context ->
             databaseConnector?.sessionFactory?.openSession()?.createQuery("FROM FactionInvite WHERE target = :target_id", FactionInvite::class.java)?.setParameter("target_id", context.player.uniqueId)?.list()?.map { it.faction!!.name } ?: mutableListOf()
@@ -85,8 +86,7 @@ class Factions : JavaPlugin() {
                     Pig location offset = 0.8
                     Player location offset = 0.54
                      */
-                    //val block = pig.passengers.first().location.add(0.0, 0.5, 0.0).block
-                    val block = pig.location.add(0.0, 0.8, 0.0).block
+                    val block = pig.location.add(0.0, 0.79, 0.0).block
                     if (block.type.isAir) {
                         pig.remove()
                         pigs.remove(id)

@@ -1,10 +1,11 @@
 package dev.tieseler.factions.commands
 
+import co.aikar.commands.BaseCommand
+import co.aikar.commands.annotation.CommandAlias
+import co.aikar.commands.annotation.Default
 import dev.tieseler.factions.Factions
 import net.kyori.adventure.text.Component
 import org.bukkit.NamespacedKey
-import org.bukkit.command.Command
-import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Pig
@@ -14,18 +15,20 @@ import org.bukkit.persistence.PersistentDataType
 import org.bukkit.Material.*
 import org.bukkit.block.data.type.Fence
 
-class PepoSitCommand : CommandExecutor {
+@CommandAlias("peposit|sit")
+class PepoSitCommand : BaseCommand() {
 
-    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>?): Boolean {
-        val player = sender as? Player ?: return false
+    @Default
+    fun onPepoSit(sender: CommandSender) {
+        val player = sender as? Player ?: return
         if (player.vehicle != null || player.fallDistance > 0) {
-            return true
+            return
         }
 
         val location = player.location.subtract(0.0, 0.8, 0.0)
         if (location.block.blockData is Fence || location.block.type == END_ROD || player.location.block.isLiquid) {
             player.sendMessage(Component.text("§cNö"))
-            return true
+            return
         }
 
         val pig = player.world.spawnEntity(location, EntityType.PIG) as Pig
@@ -40,7 +43,6 @@ class PepoSitCommand : CommandExecutor {
         pig.addPassenger(player)
         pig.setRotation(player.location.yaw, player.location.pitch)
         pig.persistentDataContainer.set(NamespacedKey.fromString("pepo_sit")!!, PersistentDataType.BYTE, 1)
-
-        return true
     }
+
 }

@@ -74,6 +74,10 @@ class FactionsCreateCommand : FactionsBaseCommand() {
         val acronym = args[2]
         val neutral = args[3] == "neutral"
         val description = args.sliceArray(4 until args.size).joinToString(" ")
+        if (description.length > 100) {
+            player.sendMessage(messages.factionDescriptionToLong())
+            return
+        }
 
         init(true, true, true)
         val factionPlayer = session?.get(FactionPlayer::class.java, player.uniqueId) ?: return close()

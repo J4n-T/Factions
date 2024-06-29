@@ -46,6 +46,7 @@ interface Messages {
     fun factionDisbanded(): Component
     fun factionNameChanged(): Component
     fun factionDescriptionChanged(): Component
+    fun factionDescriptionToLong(): Component
     fun factionNameInvalid(): Component
     fun factionDisplayNameToLong(): Component
     fun factionDisplayNameChanged(): Component

@@ -253,6 +253,10 @@ class German : Messages {
         return prefix.append(text(" Die Beschreibung deiner Faction wurde geändert").color(GREEN))
     }
 
+    override fun factionDescriptionToLong(): Component {
+        return prefix.append(text(" Die angegebene Beschreibung ist zu lang").color(RED))
+    }
+
     override fun factionNameInvalid(): Component {
         return prefix.append(text(" Der angegebene Name ist ungültig").color(RED))
     }

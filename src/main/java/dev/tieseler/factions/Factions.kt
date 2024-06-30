@@ -8,6 +8,7 @@ import dev.tieseler.factions.data.FactionPlayer
 import dev.tieseler.factions.language.German
 import dev.tieseler.factions.language.Messages
 import dev.tieseler.factions.listeners.*
+import dev.tieseler.factions.manager.ExplosionManager
 import dev.tieseler.factions.papi.FactionsExpansion
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
@@ -27,6 +28,8 @@ class Factions : JavaPlugin() {
     val pigs = ConcurrentHashMap<UUID, Pig>()
     var readSession: Session? = null
     val chunks = ConcurrentHashMap<UUID, ChunkData>()
+
+    lateinit var explosionManager: ExplosionManager
 
     //TODO: Rolesystem
     //TODO: Check Tnt explosion in claims
@@ -50,6 +53,8 @@ class Factions : JavaPlugin() {
         readSession = databaseConnector!!.sessionFactory!!.openSession()
 
         FactionsExpansion().register()
+
+        explosionManager = ExplosionManager(this)
 
         server.pluginManager.registerEvents(ChunkListener(), this)
         server.pluginManager.registerEvents(PigListener(), this)

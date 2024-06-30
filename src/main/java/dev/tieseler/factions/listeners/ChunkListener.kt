@@ -25,11 +25,12 @@ import java.util.*
 import org.bukkit.Material.*
 import org.bukkit.block.data.type.Bed
 import org.bukkit.entity.Player
-import org.bukkit.event.entity.EntityCombustEvent
 import org.bukkit.event.entity.EntityExplodeEvent
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent
 
 class ChunkListener : Listener {
+
+    val explosionManager = Factions.instance.explosionManager
 
     @EventHandler
     fun onChunkGeneration(event: ChunkPopulateEvent) {
@@ -115,25 +116,10 @@ class ChunkListener : Listener {
 
     @EventHandler
     fun onBlockExplosion(event: BlockExplodeEvent) {
-        val session = Factions.instance.databaseConnector!!.sessionFactory!!.openSession()
         val invoker = UUIDUtil().parse(event.block.getMetadata("invoker")[0].asString()) ?: return
-
-        val factionMember = session.get(FactionPlayer::class.java, invoker)
-        if (factionMember?.faction == null) {
-            event.blockList().removeIf { block ->
-                val blockChunkId = getChunkId(block.chunk) ?: setChunkId(block.chunk, UUID.randomUUID())
-                val blockChunkData = session.get(ChunkData::class.java, blockChunkId) ?: return@removeIf true
-                return@removeIf blockChunkData.state == ChunkState.WILDERNESS
-            }
-            return
-        }
-
-        val invokersFaction = factionMember.faction!!
-        event.blockList().removeIf { block ->
-            val blockChunkId = getChunkId(block.chunk) ?: setChunkId(block.chunk, UUID.randomUUID())
-            val blockChunkData = session.get(ChunkData::class.java, blockChunkId) ?: return@removeIf true
-            return@removeIf blockChunkData.faction != invokersFaction
-        }
+        val explodableBlocks = explosionManager.explodableBlocks(invoker, event.blockList())
+        event.blockList().clear()
+        event.blockList().addAll(explodableBlocks)
     }
 
     @EventHandler
